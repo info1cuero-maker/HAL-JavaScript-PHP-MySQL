@@ -466,6 +466,36 @@ async def root():
     return {"message": "HAL API v1.0"}
 
 
+# Download WordPress export files
+from fastapi.responses import FileResponse
+from pathlib import Path as FilePath
+
+@api_router.get("/download/{filename}")
+async def download_file(filename: str):
+    """Download WordPress export files"""
+    allowed_files = [
+        "companies_for_wordpress.csv",
+        "blog_posts_for_wordpress.csv",
+        "hal_wordpress_export.xml",
+        "companies.json",
+        "blog_posts.json"
+    ]
+    
+    if filename not in allowed_files:
+        raise HTTPException(status_code=404, detail="File not found")
+    
+    file_path = FilePath(__file__).parent / "wordpress_export" / filename
+    
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found. Run export_to_wordpress.py first")
+    
+    return FileResponse(
+        path=str(file_path),
+        filename=filename,
+        media_type='application/octet-stream'
+    )
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
