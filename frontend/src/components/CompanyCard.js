@@ -6,11 +6,12 @@ import { useLanguage } from '../context/LanguageContext';
 const CompanyCard = ({ company }) => {
   const { language, t } = useLanguage();
   const name = language === 'uk' ? company.name : company.nameRu;
+  const companyId = company._id || company.id;
 
   return (
     <div className="bg-white rounded-lg overflow-hidden group hover:shadow-lg transition-shadow duration-300">
       {/* Image */}
-      <Link to={`/company/${company.id}`} className="block relative overflow-hidden">
+      <Link to={`/company/${companyId}`} className="block relative overflow-hidden">
         <div className="aspect-[4/3] relative">
           <img
             src={company.image}
@@ -22,7 +23,7 @@ const CompanyCard = ({ company }) => {
 
       {/* Content */}
       <div className="p-4">
-        <Link to={`/company/${company.id}`}>
+        <Link to={`/company/${companyId}`}>
           <h3 className="text-base font-medium text-gray-900 mb-3 hover:text-gray-600 transition-colors line-clamp-2 min-h-[3rem]">
             {name}
           </h3>
