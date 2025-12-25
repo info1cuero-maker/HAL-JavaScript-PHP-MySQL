@@ -81,6 +81,22 @@ def review_helper(review) -> dict:
         "updatedAt": review.get("updatedAt", datetime.utcnow())
     }
 
+def blog_post_helper(post) -> dict:
+    return {
+        "_id": str(post["_id"]),
+        "titleUk": post["titleUk"],
+        "titleRu": post["titleRu"],
+        "contentUk": post["contentUk"],
+        "contentRu": post["contentRu"],
+        "excerptUk": post["excerptUk"],
+        "excerptRu": post["excerptRu"],
+        "image": post["image"],
+        "author": post.get("author", "HAL Team"),
+        "publishedAt": post.get("publishedAt", datetime.utcnow()),
+        "createdAt": post.get("createdAt", datetime.utcnow()),
+        "updatedAt": post.get("updatedAt", datetime.utcnow())
+    }
+
 # Dependency to get current user
 async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
     token = credentials.credentials
