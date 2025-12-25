@@ -144,31 +144,31 @@ const CompanyDetail = () => {
               </h3>
 
               {/* Phone */}
-              {company.phone && (
+              {company.contacts.phone && (
                 <div className="flex items-center mb-4 text-gray-700">
                   <Phone size={18} className="mr-3 text-pink-600" />
-                  <a href={`tel:${company.phone}`} className="hover:text-pink-600 transition-colors">
-                    {company.phone}
+                  <a href={`tel:${company.contacts.phone}`} className="hover:text-pink-600 transition-colors">
+                    {company.contacts.phone}
                   </a>
                 </div>
               )}
 
               {/* Email */}
-              {company.email && (
+              {company.contacts.email && (
                 <div className="flex items-center mb-4 text-gray-700">
                   <Mail size={18} className="mr-3 text-pink-600" />
-                  <a href={`mailto:${company.email}`} className="hover:text-pink-600 transition-colors break-all">
-                    {company.email}
+                  <a href={`mailto:${company.contacts.email}`} className="hover:text-pink-600 transition-colors break-all">
+                    {company.contacts.email}
                   </a>
                 </div>
               )}
 
               {/* Website */}
-              {company.website && (
+              {company.contacts.website && (
                 <div className="flex items-center mb-6 text-gray-700">
                   <Globe size={18} className="mr-3 text-pink-600" />
                   <a
-                    href={company.website}
+                    href={company.contacts.website}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="hover:text-pink-600 transition-colors break-all"
