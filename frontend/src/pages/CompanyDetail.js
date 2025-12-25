@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
 import { companiesAPI, reviewsAPI } from '../services/api';
-import { MapPin, Star, Phone, Mail, Globe, ArrowLeft, MessageCircle } from 'lucide-react';
+import { MapPin, Star, Phone, Mail, Globe, ArrowLeft, MessageCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 
 const CompanyDetail = () => {
   const { id } = useParams();
@@ -10,6 +10,7 @@ const CompanyDetail = () => {
   const [company, setCompany] = useState(null);
   const [reviews, setReviews] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
   useEffect(() => {
     loadCompany();
@@ -33,6 +34,18 @@ const CompanyDetail = () => {
       setReviews(response.data.reviews);
     } catch (error) {
       console.error('Failed to load reviews:', error);
+    }
+  };
+
+  const nextImage = () => {
+    if (company && allImages.length > 1) {
+      setCurrentImageIndex((prev) => (prev + 1) % allImages.length);
+    }
+  };
+
+  const prevImage = () => {
+    if (company && allImages.length > 1) {
+      setCurrentImageIndex((prev) => (prev - 1 + allImages.length) % allImages.length);
     }
   };
 
@@ -74,6 +87,10 @@ const CompanyDetail = () => {
 
   const name = language === 'uk' ? company.name : company.nameRu;
   const description = language === 'uk' ? company.description : company.descriptionRu;
+  
+  // Combine main image with additional images
+  const allImages = [company.image, ...(company.images || [])].filter(Boolean).slice(0, 10);
+  const currentImage = allImages[currentImageIndex] || company.image;
 
   return (
     <div className="min-h-screen bg-gray-50 pt-24 pb-16">
