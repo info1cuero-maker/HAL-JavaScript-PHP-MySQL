@@ -1,7 +1,7 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { useLanguage } from '../context/LanguageContext';
-import { mockCompanies, categories } from '../data/mockData';
+import { companiesAPI, categoriesAPI } from '../services/api';
 import CompanyCard from '../components/CompanyCard';
 import { Search as SearchIcon, Filter, X } from 'lucide-react';
 
@@ -12,47 +12,58 @@ const Search = () => {
   const [selectedCategory, setSelectedCategory] = useState(searchParams.get('category') || 'all');
   const [sortBy, setSortBy] = useState(searchParams.get('sort') || 'relevant');
   const [showFilters, setShowFilters] = useState(false);
+  const [companies, setCompanies] = useState([]);
+  const [categories, setCategories] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [total, setTotal] = useState(0);
 
-  const filteredCompanies = useMemo(() => {
-    let filtered = [...mockCompanies];
+  useEffect(() => {
+    loadCategories();
+  }, []);
 
-    // Filter by search term
-    if (searchTerm) {
-      filtered = filtered.filter(company => {
-        const name = language === 'uk' ? company.name : company.nameRu;
-        const description = language === 'uk' ? company.description : company.descriptionRu;
-        return (
-          name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-          description.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-      });
+  useEffect(() => {
+    loadCompanies();
+  }, [searchTerm, selectedCategory, sortBy]);
+
+  const loadCategories = async () => {
+    try {
+      const response = await categoriesAPI.getAll();
+      setCategories(response.data);
+    } catch (error) {
+      console.error('Failed to load categories:', error);
     }
+  };
 
-    // Filter by category
-    if (selectedCategory !== 'all') {
-      filtered = filtered.filter(company => company.category === selectedCategory);
+  const loadCompanies = async () => {
+    setLoading(true);
+    try {
+      const params = {
+        limit: 100,
+        sort: sortBy === 'relevant' ? 'recent' : sortBy
+      };
+      
+      if (searchTerm) {
+        params.search = searchTerm;
+      }
+      
+      if (selectedCategory !== 'all') {
+        params.category = selectedCategory;
+      }
+
+      const response = await companiesAPI.getAll(params);
+      setCompanies(response.data.companies);
+      setTotal(response.data.total);
+    } catch (error) {
+      console.error('Failed to load companies:', error);
+    } finally {
+      setLoading(false);
     }
-
-    // Sort
-    switch (sortBy) {
-      case 'pop':
-        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      case 'recent':
-        filtered.sort((a, b) => b.id - a.id);
-        break;
-      case 'rating':
-        filtered.sort((a, b) => (b.rating || 0) - (a.rating || 0));
-        break;
-      default:
-        break;
-    }
-
-    return filtered;
-  }, [searchTerm, selectedCategory, sortBy, language]);
+  };
 
   const handleSearch = (e) => {
     e.preventDefault();
+    loadCompanies();
+    
     const params = new URLSearchParams();
     if (searchTerm) params.set('q', searchTerm);
     if (selectedCategory !== 'all') params.set('category', selectedCategory);
