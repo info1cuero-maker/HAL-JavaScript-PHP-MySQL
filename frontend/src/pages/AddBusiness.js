@@ -271,9 +271,13 @@ const AddBusiness = () => {
             {/* Submit Button */}
             <button
               type="submit"
-              className="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white px-6 py-4 rounded-lg hover:from-pink-600 hover:to-red-600 transition-all font-semibold text-lg shadow-lg"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-pink-500 to-red-500 text-white px-6 py-4 rounded-lg hover:from-pink-600 hover:to-red-600 transition-all font-semibold text-lg shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {language === 'uk' ? 'Додати компанію' : 'Добавить компанию'}
+              {loading 
+                ? (language === 'uk' ? 'Додавання...' : 'Добавление...') 
+                : (language === 'uk' ? 'Додати компанію' : 'Добавить компанию')
+              }
             </button>
           </form>
         </div>
