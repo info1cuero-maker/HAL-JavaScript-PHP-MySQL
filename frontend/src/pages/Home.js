@@ -63,13 +63,13 @@ const Home = () => {
       </section>
 
       {/* New Companies Section */}
-      <section className="py-16 bg-gray-50">
+      <section className="py-16 bg-white">
         <div className="container mx-auto px-4">
-          <div className="flex justify-between items-center mb-8">
+          <div className="flex justify-between items-center mb-10">
             <h2 className="text-3xl font-bold text-gray-900">{t('sections.newCompanies')}</h2>
             <Link
               to="/search"
-              className="text-pink-600 hover:text-pink-700 font-semibold flex items-center space-x-2 group"
+              className="text-pink-600 hover:text-pink-700 font-medium flex items-center space-x-2 group"
             >
               <span>{t('sections.viewMore')}</span>
               <ArrowRight size={20} className="group-hover:translate-x-1 transition-transform" />
