@@ -110,7 +110,7 @@ const AddBusiness = () => {
             {/* Name */}
             <div>
               <label htmlFor="name" className="block text-sm font-medium text-gray-700 mb-2">
-                {language === 'uk' ? 'Назва компанії' : 'Название компании'} *
+                {language === 'uk' ? 'Назва компанії (українською)' : 'Название компании (на украинском)'} *
               </label>
               <input
                 type="text"
@@ -119,6 +119,21 @@ const AddBusiness = () => {
                 value={formData.name}
                 onChange={handleChange}
                 required
+                className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+              />
+            </div>
+
+            {/* Name Russian */}
+            <div>
+              <label htmlFor="nameRu" className="block text-sm font-medium text-gray-700 mb-2">
+                {language === 'uk' ? 'Назва компанії (російською)' : 'Название компании (на русском)'}
+              </label>
+              <input
+                type="text"
+                id="nameRu"
+                name="nameRu"
+                value={formData.nameRu}
+                onChange={handleChange}
                 className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
               />
             </div>
