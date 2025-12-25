@@ -354,6 +354,140 @@ async def get_me(current_user: dict = Depends(get_current_user)):
     return current_user
 
 
+# ============ USER PROFILE & DASHBOARD ENDPOINTS ============
+
+@api_router.put("/users/me")
+async def update_profile(
+    name: Optional[str] = None,
+    phone: Optional[str] = None,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update user profile"""
+    update_data = {}
+    if name:
+        update_data["name"] = name
+    if phone:
+        update_data["phone"] = phone
+    
+    if update_data:
+        update_data["updatedAt"] = datetime.utcnow()
+        await db.users.update_one(
+            {"_id": ObjectId(current_user["_id"])},
+            {"$set": update_data}
+        )
+    
+    updated_user = await db.users.find_one({"_id": ObjectId(current_user["_id"])})
+    return user_helper(updated_user)
+
+
+@api_router.get("/users/me/companies")
+async def get_my_companies(current_user: dict = Depends(get_current_user)):
+    """Get user's companies"""
+    companies = await db.companies.find({"userId": current_user["_id"]}).to_list(length=100)
+    return [company_helper(company) for company in companies]
+
+
+@api_router.get("/users/me/dashboard")
+async def get_dashboard(current_user: dict = Depends(get_current_user)):
+    """Get user dashboard with statistics"""
+    # Get user's companies
+    companies = await db.companies.find({"userId": current_user["_id"]}).to_list(length=100)
+    company_ids = [company["_id"] for company in companies]
+    
+    # Calculate statistics for each company
+    stats = []
+    for company_id in company_ids:
+        # Total views
+        total_views = await db.company_views.count_documents({"companyId": company_id})
+        
+        # Unique views (by userId)
+        unique_views_pipeline = [
+            {"$match": {"companyId": company_id}},
+            {"$group": {"_id": "$userId"}},
+            {"$count": "count"}
+        ]
+        unique_result = await db.company_views.aggregate(unique_views_pipeline).to_list(length=1)
+        unique_views = unique_result[0]["count"] if unique_result else 0
+        
+        # Views this week
+        from datetime import timedelta
+        week_ago = datetime.utcnow() - timedelta(days=7)
+        views_this_week = await db.company_views.count_documents({
+            "companyId": company_id,
+            "viewedAt": {"$gte": week_ago}
+        })
+        
+        # Views this month
+        month_ago = datetime.utcnow() - timedelta(days=30)
+        views_this_month = await db.company_views.count_documents({
+            "companyId": company_id,
+            "viewedAt": {"$gte": month_ago}
+        })
+        
+        # Reviews count and average rating
+        reviews = await db.reviews.find({"companyId": company_id}).to_list(length=None)
+        total_reviews = len(reviews)
+        avg_rating = sum(r["rating"] for r in reviews) / total_reviews if total_reviews > 0 else 0
+        
+        # Last viewed
+        last_view = await db.company_views.find_one(
+            {"companyId": company_id},
+            sort=[("viewedAt", -1)]
+        )
+        
+        # Find company details
+        company = next((c for c in companies if c["_id"] == company_id), None)
+        
+        stats.append({
+            "companyId": str(company_id),
+            "companyName": company.get("name", "") if company else "",
+            "totalViews": total_views,
+            "uniqueViews": unique_views,
+            "viewsThisWeek": views_this_week,
+            "viewsThisMonth": views_this_month,
+            "totalReviews": total_reviews,
+            "averageRating": round(avg_rating, 1),
+            "lastViewedAt": last_view["viewedAt"] if last_view else None
+        })
+    
+    # Overall statistics
+    total_companies = len(companies)
+    total_views_all = sum(s["totalViews"] for s in stats)
+    total_reviews_all = sum(s["totalReviews"] for s in stats)
+    
+    return {
+        "user": user_helper(await db.users.find_one({"_id": ObjectId(current_user["_id"])})),
+        "overview": {
+            "totalCompanies": total_companies,
+            "totalViews": total_views_all,
+            "totalReviews": total_reviews_all,
+            "companiesActive": len([c for c in companies if c.get("isActive", True)])
+        },
+        "companies": stats
+    }
+
+
+@api_router.get("/users/me/reviews")
+async def get_my_reviews(current_user: dict = Depends(get_current_user)):
+    """Get reviews on user's companies"""
+    # Get user's companies
+    companies = await db.companies.find({"userId": current_user["_id"]}).to_list(length=100)
+    company_ids = [company["_id"] for company in companies]
+    
+    # Get reviews for these companies
+    reviews = await db.reviews.find({"companyId": {"$in": company_ids}}).sort("createdAt", -1).to_list(length=100)
+    
+    # Add company names to reviews
+    result = []
+    for review in reviews:
+        company = next((c for c in companies if c["_id"] == review["companyId"]), None)
+        review_data = review_helper(review)
+        review_data["companyName"] = company.get("name", "") if company else ""
+        result.append(review_data)
+    
+    return result
+
+
 # ============ REVIEWS ENDPOINTS ============
 
 @api_router.get("/companies/{company_id}/reviews")
