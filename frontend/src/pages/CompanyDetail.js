@@ -117,7 +117,7 @@ const CompanyDetail = () => {
                 {/* Location */}
                 <div className="flex items-center text-gray-600 mb-6">
                   <MapPin size={20} className="mr-2" />
-                  <span className="text-lg">{company.location}</span>
+                  <span className="text-lg">{company.location.city}, {company.location.address}</span>
                 </div>
 
                 <p className="text-gray-700 text-lg leading-relaxed">{description}</p>
