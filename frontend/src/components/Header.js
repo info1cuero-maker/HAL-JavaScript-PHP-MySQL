@@ -82,6 +82,32 @@ const Header = () => {
             >
               {t('nav.addBusiness')}
             </Link>
+            
+            {isAuthenticated ? (
+              <>
+                <Link
+                  to="/dashboard"
+                  className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  <User size={20} />
+                  <span>{user?.name}</span>
+                </Link>
+                <button
+                  onClick={handleLogout}
+                  className="flex items-center space-x-2 text-gray-700 hover:text-pink-600 transition-colors font-medium"
+                >
+                  <LogOut size={20} />
+                  <span>{language === 'uk' ? 'Вихід' : 'Выход'}</span>
+                </button>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="text-gray-700 hover:text-pink-600 transition-colors font-medium"
+              >
+                {t('nav.login')}
+              </Link>
+            )}
           </nav>
 
           {/* Mobile Menu Button */}
