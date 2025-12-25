@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useLanguage } from '../context/LanguageContext';
 import { MapPin, Phone, Mail, Send } from 'lucide-react';
 import { toast } from '../hooks/use-toast';
+import { contactAPI } from '../services/api';
 
 const Contacts = () => {
   const { language } = useLanguage();
@@ -10,14 +11,28 @@ const Contacts = () => {
     email: '',
     message: ''
   });
+  const [loading, setLoading] = useState(false);
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
-    toast({
-      title: language === 'uk' ? 'Повідомлення надіслано' : 'Сообщение отправлено',
-      description: language === 'uk' ? 'Ми зв\'\'яжемось з вами найближчим часом' : 'Мы свяжемся с вами в ближайшее время'
-    });
-    setFormData({ name: '', email: '', message: '' });
+    setLoading(true);
+    
+    try {
+      await contactAPI.send(formData);
+      toast({
+        title: language === 'uk' ? 'Повідомлення надіслано' : 'Сообщение отправлено',
+        description: language === 'uk' ? 'Ми зв\'\'яжемось з вами найближчим часом' : 'Мы свяжемся с вами в ближайшее время'
+      });
+      setFormData({ name: '', email: '', message: '' });
+    } catch (error) {
+      toast({
+        title: language === 'uk' ? 'Помилка' : 'Ошибка',
+        description: language === 'uk' ? 'Не вдалося надіслати повідомлення' : 'Не удалось отправить сообщение',
+        variant: 'destructive'
+      });
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleChange = (e) => {
