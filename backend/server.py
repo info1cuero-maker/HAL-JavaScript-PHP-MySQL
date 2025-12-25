@@ -186,14 +186,25 @@ async def get_companies(
 
 
 @api_router.get("/companies/{company_id}")
-async def get_company(company_id: str):
-    """Get company details"""
+async def get_company(
+    company_id: str,
+    current_user: dict = Depends(get_current_user_optional)
+):
+    """Get company details and track view"""
     if not ObjectId.is_valid(company_id):
         raise HTTPException(status_code=400, detail="Invalid company ID")
     
     company = await db.companies.find_one({"_id": ObjectId(company_id)})
     if company is None:
         raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Track view
+    view_record = {
+        "companyId": ObjectId(company_id),
+        "userId": ObjectId(current_user["_id"]) if current_user else None,
+        "viewedAt": datetime.utcnow()
+    }
+    await db.company_views.insert_one(view_record)
     
     return company_helper(company)
 
