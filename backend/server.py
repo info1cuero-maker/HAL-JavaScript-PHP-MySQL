@@ -1,15 +1,22 @@
-from fastapi import FastAPI, APIRouter
+from fastapi import FastAPI, APIRouter, HTTPException, Query, Depends, Header
+from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 from dotenv import load_dotenv
 from starlette.middleware.cors import CORSMiddleware
 from motor.motor_asyncio import AsyncIOMotorClient
 import os
 import logging
 from pathlib import Path
-from pydantic import BaseModel, Field, ConfigDict
-from typing import List
-import uuid
-from datetime import datetime, timezone
+from datetime import datetime
+from typing import Optional, List
+from bson import ObjectId
 
+# Import models
+from models.company import Company, CompanyCreate, CompanyUpdate
+from models.user import User, UserCreate, UserLogin
+from models.review import Review, ReviewCreate
+from models.blog import BlogPost
+from models.contact import ContactMessage
+from utils.auth import get_password_hash, verify_password, create_access_token, decode_token
 
 ROOT_DIR = Path(__file__).parent
 load_dotenv(ROOT_DIR / '.env')
@@ -25,46 +32,424 @@ app = FastAPI()
 # Create a router with the /api prefix
 api_router = APIRouter(prefix="/api")
 
+# Security
+security = HTTPBearer()
 
-# Define Models
-class StatusCheck(BaseModel):
-    model_config = ConfigDict(extra="ignore")  # Ignore MongoDB's _id field
+# Helper function to convert ObjectId to string
+def company_helper(company) -> dict:
+    return {
+        "_id": str(company["_id"]),
+        "name": company["name"],
+        "nameRu": company["nameRu"],
+        "description": company["description"],
+        "descriptionRu": company["descriptionRu"],
+        "category": company["category"],
+        "location": company["location"],
+        "contacts": company["contacts"],
+        "image": company["image"],
+        "images": company.get("images", []),
+        "rating": company.get("rating", 0.0),
+        "reviewCount": company.get("reviewCount", 0),
+        "isNew": company.get("isNew", False),
+        "isActive": company.get("isActive", True),
+        "userId": company.get("userId"),
+        "createdAt": company.get("createdAt", datetime.utcnow()),
+        "updatedAt": company.get("updatedAt", datetime.utcnow())
+    }
+
+def user_helper(user) -> dict:
+    return {
+        "_id": str(user["_id"]),
+        "name": user["name"],
+        "email": user["email"],
+        "phone": user.get("phone"),
+        "role": user.get("role", "user"),
+        "createdAt": user.get("createdAt", datetime.utcnow()),
+        "updatedAt": user.get("updatedAt", datetime.utcnow())
+    }
+
+def review_helper(review) -> dict:
+    return {
+        "_id": str(review["_id"]),
+        "companyId": str(review["companyId"]),
+        "userId": str(review["userId"]),
+        "userName": review["userName"],
+        "rating": review["rating"],
+        "comment": review["comment"],
+        "commentRu": review.get("commentRu"),
+        "createdAt": review.get("createdAt", datetime.utcnow()),
+        "updatedAt": review.get("updatedAt", datetime.utcnow())
+    }
+
+# Dependency to get current user
+async def get_current_user(credentials: HTTPAuthorizationCredentials = Depends(security)):
+    token = credentials.credentials
+    payload = decode_token(token)
+    if payload is None:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
     
-    id: str = Field(default_factory=lambda: str(uuid.uuid4()))
-    client_name: str
-    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
+    user_id = payload.get("sub")
+    if user_id is None:
+        raise HTTPException(status_code=401, detail="Invalid authentication credentials")
+    
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if user is None:
+        raise HTTPException(status_code=401, detail="User not found")
+    
+    return user_helper(user)
 
-class StatusCheckCreate(BaseModel):
-    client_name: str
+# Optional authentication
+async def get_current_user_optional(authorization: Optional[str] = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        return None
+    
+    token = authorization.replace("Bearer ", "")
+    payload = decode_token(token)
+    if payload is None:
+        return None
+    
+    user_id = payload.get("sub")
+    if user_id is None:
+        return None
+    
+    user = await db.users.find_one({"_id": ObjectId(user_id)})
+    if user is None:
+        return None
+    
+    return user_helper(user)
 
-# Add your routes to the router instead of directly to app
+
+# ============ COMPANIES ENDPOINTS ============
+
+@api_router.get("/companies")
+async def get_companies(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100),
+    category: Optional[str] = None,
+    search: Optional[str] = None,
+    sort: str = Query("recent", regex="^(recent|popular|rating)$"),
+    isNew: Optional[bool] = None
+):
+    """Get list of companies with filtering and pagination"""
+    skip = (page - 1) * limit
+    
+    # Build query
+    query = {"isActive": True}
+    if category:
+        query["category"] = category
+    if isNew is not None:
+        query["isNew"] = isNew
+    if search:
+        query["$or"] = [
+            {"name": {"$regex": search, "$options": "i"}},
+            {"nameRu": {"$regex": search, "$options": "i"}},
+            {"description": {"$regex": search, "$options": "i"}},
+            {"descriptionRu": {"$regex": search, "$options": "i"}}
+        ]
+    
+    # Build sort
+    sort_field = {
+        "recent": [("createdAt", -1)],
+        "popular": [("reviewCount", -1), ("rating", -1)],
+        "rating": [("rating", -1), ("reviewCount", -1)]
+    }.get(sort, [("createdAt", -1)])
+    
+    # Get companies
+    companies_cursor = db.companies.find(query).sort(sort_field).skip(skip).limit(limit)
+    companies = await companies_cursor.to_list(length=limit)
+    
+    # Get total count
+    total = await db.companies.count_documents(query)
+    
+    return {
+        "companies": [company_helper(company) for company in companies],
+        "total": total,
+        "page": page,
+        "pages": (total + limit - 1) // limit
+    }
+
+
+@api_router.get("/companies/{company_id}")
+async def get_company(company_id: str):
+    """Get company details"""
+    if not ObjectId.is_valid(company_id):
+        raise HTTPException(status_code=400, detail="Invalid company ID")
+    
+    company = await db.companies.find_one({"_id": ObjectId(company_id)})
+    if company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    return company_helper(company)
+
+
+@api_router.post("/companies", status_code=201)
+async def create_company(
+    company: CompanyCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Create a new company (requires authentication)"""
+    company_dict = company.model_dump()
+    company_dict["userId"] = current_user["_id"]
+    company_dict["rating"] = 0.0
+    company_dict["reviewCount"] = 0
+    company_dict["createdAt"] = datetime.utcnow()
+    company_dict["updatedAt"] = datetime.utcnow()
+    
+    result = await db.companies.insert_one(company_dict)
+    created_company = await db.companies.find_one({"_id": result.inserted_id})
+    
+    return company_helper(created_company)
+
+
+@api_router.put("/companies/{company_id}")
+async def update_company(
+    company_id: str,
+    company_update: CompanyUpdate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Update company (requires authentication, owner or admin)"""
+    if not ObjectId.is_valid(company_id):
+        raise HTTPException(status_code=400, detail="Invalid company ID")
+    
+    existing_company = await db.companies.find_one({"_id": ObjectId(company_id)})
+    if existing_company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check permissions
+    if current_user["role"] != "admin" and str(existing_company.get("userId")) != current_user["_id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to update this company")
+    
+    # Update only provided fields
+    update_data = {k: v for k, v in company_update.model_dump(exclude_unset=True).items() if v is not None}
+    update_data["updatedAt"] = datetime.utcnow()
+    
+    await db.companies.update_one(
+        {"_id": ObjectId(company_id)},
+        {"$set": update_data}
+    )
+    
+    updated_company = await db.companies.find_one({"_id": ObjectId(company_id)})
+    return company_helper(updated_company)
+
+
+@api_router.delete("/companies/{company_id}")
+async def delete_company(
+    company_id: str,
+    current_user: dict = Depends(get_current_user)
+):
+    """Delete company (requires authentication, owner or admin)"""
+    if not ObjectId.is_valid(company_id):
+        raise HTTPException(status_code=400, detail="Invalid company ID")
+    
+    existing_company = await db.companies.find_one({"_id": ObjectId(company_id)})
+    if existing_company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check permissions
+    if current_user["role"] != "admin" and str(existing_company.get("userId")) != current_user["_id"]:
+        raise HTTPException(status_code=403, detail="Not authorized to delete this company")
+    
+    await db.companies.delete_one({"_id": ObjectId(company_id)})
+    return {"message": "Company deleted successfully"}
+
+
+# ============ CATEGORIES ENDPOINTS ============
+
+@api_router.get("/categories")
+async def get_categories():
+    """Get all categories with company counts"""
+    categories = [
+        {"id": "cafe", "nameUk": "Кафе та ресторани", "nameRu": "Кафе и рестораны"},
+        {"id": "sport", "nameUk": "Спорт і фітнес", "nameRu": "Спорт и фитнес"},
+        {"id": "beauty", "nameUk": "Краса та здоров'я", "nameRu": "Красота и здоровье"},
+        {"id": "art", "nameUk": "Мистецтво та розваги", "nameRu": "Искусство и развлечения"},
+        {"id": "home", "nameUk": "Домашні та побутові послуги", "nameRu": "Домашние и бытовые услуги"},
+        {"id": "auto", "nameUk": "Авто послуги", "nameRu": "Авто услуги"},
+        {"id": "construction", "nameUk": "Будівництво та ремонт", "nameRu": "Строительство и ремонт"},
+        {"id": "other", "nameUk": "Інші послуги", "nameRu": "Другие услуги"}
+    ]
+    
+    # Count companies in each category
+    for category in categories:
+        count = await db.companies.count_documents({"category": category["id"], "isActive": True})
+        category["count"] = count
+    
+    return categories
+
+
+# ============ AUTH ENDPOINTS ============
+
+@api_router.post("/auth/register", status_code=201)
+async def register(user: UserCreate):
+    """Register a new user"""
+    # Check if user exists
+    existing_user = await db.users.find_one({"email": user.email})
+    if existing_user:
+        raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Create user
+    user_dict = user.model_dump()
+    user_dict["password"] = get_password_hash(user_dict["password"])
+    user_dict["createdAt"] = datetime.utcnow()
+    user_dict["updatedAt"] = datetime.utcnow()
+    
+    result = await db.users.insert_one(user_dict)
+    created_user = await db.users.find_one({"_id": result.inserted_id})
+    
+    # Create token
+    token = create_access_token(data={"sub": str(created_user["_id"])})
+    
+    return {
+        "user": user_helper(created_user),
+        "token": token
+    }
+
+
+@api_router.post("/auth/login")
+async def login(user_login: UserLogin):
+    """Login user"""
+    user = await db.users.find_one({"email": user_login.email})
+    if not user or not verify_password(user_login.password, user["password"]):
+        raise HTTPException(status_code=401, detail="Incorrect email or password")
+    
+    # Create token
+    token = create_access_token(data={"sub": str(user["_id"])})
+    
+    return {
+        "user": user_helper(user),
+        "token": token
+    }
+
+
+@api_router.get("/auth/me")
+async def get_me(current_user: dict = Depends(get_current_user)):
+    """Get current user"""
+    return current_user
+
+
+# ============ REVIEWS ENDPOINTS ============
+
+@api_router.get("/companies/{company_id}/reviews")
+async def get_company_reviews(
+    company_id: str,
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
+    """Get reviews for a company"""
+    if not ObjectId.is_valid(company_id):
+        raise HTTPException(status_code=400, detail="Invalid company ID")
+    
+    skip = (page - 1) * limit
+    
+    reviews_cursor = db.reviews.find({"companyId": ObjectId(company_id)}).sort("createdAt", -1).skip(skip).limit(limit)
+    reviews = await reviews_cursor.to_list(length=limit)
+    
+    total = await db.reviews.count_documents({"companyId": ObjectId(company_id)})
+    
+    return {
+        "reviews": [review_helper(review) for review in reviews],
+        "total": total
+    }
+
+
+@api_router.post("/companies/{company_id}/reviews", status_code=201)
+async def create_review(
+    company_id: str,
+    review: ReviewCreate,
+    current_user: dict = Depends(get_current_user)
+):
+    """Add a review (requires authentication)"""
+    if not ObjectId.is_valid(company_id):
+        raise HTTPException(status_code=400, detail="Invalid company ID")
+    
+    company = await db.companies.find_one({"_id": ObjectId(company_id)})
+    if company is None:
+        raise HTTPException(status_code=404, detail="Company not found")
+    
+    # Check if user already reviewed
+    existing_review = await db.reviews.find_one({
+        "companyId": ObjectId(company_id),
+        "userId": ObjectId(current_user["_id"])
+    })
+    if existing_review:
+        raise HTTPException(status_code=400, detail="You have already reviewed this company")
+    
+    # Create review
+    review_dict = review.model_dump()
+    review_dict["companyId"] = ObjectId(company_id)
+    review_dict["userId"] = ObjectId(current_user["_id"])
+    review_dict["userName"] = current_user["name"]
+    review_dict["createdAt"] = datetime.utcnow()
+    review_dict["updatedAt"] = datetime.utcnow()
+    
+    result = await db.reviews.insert_one(review_dict)
+    
+    # Update company rating
+    reviews = await db.reviews.find({"companyId": ObjectId(company_id)}).to_list(length=None)
+    avg_rating = sum(r["rating"] for r in reviews) / len(reviews)
+    
+    await db.companies.update_one(
+        {"_id": ObjectId(company_id)},
+        {"$set": {"rating": round(avg_rating, 1), "reviewCount": len(reviews)}}
+    )
+    
+    created_review = await db.reviews.find_one({"_id": result.inserted_id})
+    return review_helper(created_review)
+
+
+# ============ BLOG ENDPOINTS ============
+
+@api_router.get("/blog")
+async def get_blog_posts(
+    page: int = Query(1, ge=1),
+    limit: int = Query(20, ge=1, le=100)
+):
+    """Get blog posts"""
+    skip = (page - 1) * limit
+    
+    posts_cursor = db.blog_posts.find().sort("publishedAt", -1).skip(skip).limit(limit)
+    posts = await posts_cursor.to_list(length=limit)
+    
+    total = await db.blog_posts.count_documents({})
+    
+    return {
+        "posts": posts,
+        "total": total
+    }
+
+
+@api_router.get("/blog/{post_id}")
+async def get_blog_post(post_id: str):
+    """Get a blog post"""
+    if not ObjectId.is_valid(post_id):
+        raise HTTPException(status_code=400, detail="Invalid post ID")
+    
+    post = await db.blog_posts.find_one({"_id": ObjectId(post_id)})
+    if post is None:
+        raise HTTPException(status_code=404, detail="Post not found")
+    
+    post["_id"] = str(post["_id"])
+    return post
+
+
+# ============ CONTACT ENDPOINT ============
+
+@api_router.post("/contact")
+async def send_contact_message(message: ContactMessage):
+    """Send contact message"""
+    message_dict = message.model_dump()
+    message_dict["createdAt"] = datetime.utcnow()
+    
+    await db.contact_messages.insert_one(message_dict)
+    
+    return {"message": "Message sent successfully"}
+
+
+# Root endpoint
 @api_router.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"message": "HAL API v1.0"}
 
-@api_router.post("/status", response_model=StatusCheck)
-async def create_status_check(input: StatusCheckCreate):
-    status_dict = input.model_dump()
-    status_obj = StatusCheck(**status_dict)
-    
-    # Convert to dict and serialize datetime to ISO string for MongoDB
-    doc = status_obj.model_dump()
-    doc['timestamp'] = doc['timestamp'].isoformat()
-    
-    _ = await db.status_checks.insert_one(doc)
-    return status_obj
-
-@api_router.get("/status", response_model=List[StatusCheck])
-async def get_status_checks():
-    # Exclude MongoDB's _id field from the query results
-    status_checks = await db.status_checks.find({}, {"_id": 0}).to_list(1000)
-    
-    # Convert ISO string timestamps back to datetime objects
-    for check in status_checks:
-        if isinstance(check['timestamp'], str):
-            check['timestamp'] = datetime.fromisoformat(check['timestamp'])
-    
-    return status_checks
 
 # Include the router in the main app
 app.include_router(api_router)
@@ -72,7 +457,7 @@ app.include_router(api_router)
 app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_origins=["*"],
     allow_methods=["*"],
     allow_headers=["*"],
 )
