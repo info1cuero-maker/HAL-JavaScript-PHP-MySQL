@@ -14,6 +14,9 @@ import Contacts from './pages/Contacts';
 import AddBusiness from './pages/AddBusiness';
 import About from './pages/About';
 import DownloadFiles from './pages/DownloadFiles';
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Dashboard from './pages/Dashboard';
 
 function App() {
   return (
@@ -32,6 +35,9 @@ function App() {
                 <Route path="/add-business" element={<AddBusiness />} />
                 <Route path="/about" element={<About />} />
                 <Route path="/download" element={<DownloadFiles />} />
+                <Route path="/login" element={<Login />} />
+                <Route path="/register" element={<Register />} />
+                <Route path="/dashboard" element={<Dashboard />} />
               </Routes>
             </main>
             <Footer />
