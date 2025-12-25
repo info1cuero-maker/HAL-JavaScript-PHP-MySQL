@@ -84,9 +84,9 @@ const Home = () => {
       </section>
 
       {/* Categories Section */}
-      <section className="py-16 bg-white">
+      <section className="py-16 bg-gray-50">
         <div className="container mx-auto px-4">
-          <h2 className="text-3xl font-bold text-gray-900 mb-12 text-center">
+          <h2 className="text-3xl font-bold text-gray-900 mb-10 text-center">
             {t('sections.mainCategories')}
           </h2>
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-4 gap-6">
@@ -98,15 +98,15 @@ const Home = () => {
                   to={`/search?category=${category.id}`}
                   className="group"
                 >
-                  <div className="bg-gradient-to-br from-gray-50 to-gray-100 rounded-xl p-8 hover:shadow-xl transition-all duration-300 border border-gray-200 hover:border-pink-300 transform hover:-translate-y-1">
+                  <div className="bg-white rounded-lg p-6 hover:shadow-md transition-all duration-300 border border-gray-100">
                     <div className="flex flex-col items-center text-center">
                       <div className="w-16 h-16 mb-4 rounded-full bg-gradient-to-br from-pink-500 to-red-500 flex items-center justify-center group-hover:scale-110 transition-transform">
-                        <Icon size={32} className="text-white" />
+                        <Icon size={28} className="text-white" strokeWidth={1.5} />
                       </div>
-                      <h3 className="font-semibold text-gray-900 mb-1">
+                      <h3 className="font-medium text-gray-900 mb-1 text-sm">
                         {language === 'uk' ? category.nameUk : category.nameRu}
                       </h3>
-                      <p className="text-sm text-gray-500">{category.count} {language === 'uk' ? 'компаній' : 'компаний'}</p>
+                      <p className="text-xs text-gray-500">{category.count} {language === 'uk' ? 'компаній' : 'компаний'}</p>
                     </div>
                   </div>
                 </Link>
