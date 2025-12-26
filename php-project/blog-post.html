@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Стаття - HAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css">
+    <style>
+        .blog-content {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: var(--shadow-md);
+        }
+        .blog-header-image {
+            width: 100%;
+            height: 400px;
+            object-fit: cover;
+            border-radius: var(--radius-lg);
+            margin-bottom: 2rem;
+        }
+        .blog-content h1 {
+            font-size: 2rem;
+            margin-bottom: 1rem;
+        }
+        .blog-meta-info {
+            display: flex;
+            gap: 2rem;
+            color: var(--text-gray);
+            margin-bottom: 2rem;
+            padding-bottom: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .blog-body {
+            line-height: 1.8;
+            color: var(--text-gray);
+        }
+        .blog-body h2 {
+            color: var(--text-dark);
+            margin: 2rem 0 1rem;
+        }
+        .blog-body h3 {
+            color: var(--text-dark);
+            margin: 1.5rem 0 0.75rem;
+        }
+        .blog-body p {
+            margin-bottom: 1rem;
+        }
+        .blog-body ul, .blog-body ol {
+            margin: 1rem 0;
+            padding-left: 2rem;
+        }
+        .blog-body li {
+            margin-bottom: 0.5rem;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="/" class="logo">HAL</a>
+            <nav class="nav">
+                <a href="/" class="nav-link">Головна</a>
+                <a href="/search" class="nav-link">Пошук</a>
+                <a href="/blog" class="nav-link">Блог</a>
+                <a href="/contacts" class="nav-link">Контакти</a>
+                <a href="/about" class="nav-link">Про нас</a>
+            </nav>
+            <div class="nav-actions">
+                <div class="lang-switch">
+                    <button class="lang-btn active" data-lang="uk">UA</button>
+                    <button class="lang-btn" data-lang="ru">RU</button>
+                </div>
+                <div class="auth-links">
+                    <a href="/login" class="btn btn-outline">Увійти</a>
+                    <a href="/register" class="btn btn-primary">Реєстрація</a>
+                </div>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="page-content">
+        <div class="container" style="max-width: 900px">
+            <a href="/blog" class="back-link">
+                <span>←</span>
+                <span>Назад до блогу</span>
+            </a>
+
+            <div id="blog-content" class="blog-content">
+                <div class="skeleton" style="height: 400px; margin-bottom: 2rem"></div>
+                <div class="skeleton" style="height: 40px; margin-bottom: 1rem"></div>
+                <div class="skeleton" style="height: 200px"></div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                © 2025 HAL. Всі права захищені.
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/app.js"></script>
+    <script>
+        const postId = window.location.pathname.split('/').pop();
+
+        async function loadPost() {
+            try {
+                const post = await HAL.api.get(`/blog/${postId}`);
+                const lang = HAL.state.language;
+                const title = lang === 'uk' ? post.title_uk : post.title_ru;
+                const content = lang === 'uk' ? post.content_uk : post.content_ru;
+                
+                document.title = `${title} - HAL`;
+                
+                document.getElementById('blog-content').innerHTML = `
+                    <img src="${post.image}" alt="${title}" class="blog-header-image">
+                    <h1>${title}</h1>
+                    <div class="blog-meta-info">
+                        <span>Автор: ${post.author}</span>
+                        <span>Опубліковано: ${HAL.formatDate(post.published_at)}</span>
+                    </div>
+                    <div class="blog-body">
+                        ${content}
+                    </div>
+                `;
+            } catch (error) {
+                console.error('Failed to load post:', error);
+                document.getElementById('blog-content').innerHTML = `
+                    <p>Статтю не знайдено</p>
+                    <a href="/blog" class="btn btn-primary" style="margin-top: 1rem">До блогу</a>
+                `;
+            }
+        }
+
+        loadPost();
+    </script>
+</body>
+</html>
