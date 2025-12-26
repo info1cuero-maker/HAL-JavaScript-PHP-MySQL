@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Компанія - HAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/assets/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="/" class="logo">HAL</a>
+            <nav class="nav">
+                <a href="/" class="nav-link">Головна</a>
+                <a href="/search" class="nav-link">Пошук</a>
+                <a href="/blog" class="nav-link">Блог</a>
+                <a href="/contacts" class="nav-link">Контакти</a>
+                <a href="/about" class="nav-link">Про нас</a>
+            </nav>
+            <div class="nav-actions">
+                <div class="lang-switch">
+                    <button class="lang-btn active" data-lang="uk">UA</button>
+                    <button class="lang-btn" data-lang="ru">RU</button>
+                </div>
+                <div class="auth-links">
+                    <a href="/login" class="btn btn-outline">Увійти</a>
+                    <a href="/register" class="btn btn-primary">Реєстрація</a>
+                </div>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="company-detail">
+        <div class="container">
+            <a href="/search" class="back-link">
+                <span>←</span>
+                <span data-i18n="company.backToSearch">Назад до пошуку</span>
+            </a>
+
+            <div class="detail-grid">
+                <!-- Main Content -->
+                <div class="detail-main" id="company-main">
+                    <div class="skeleton" style="height: 400px"></div>
+                </div>
+
+                <!-- Sidebar -->
+                <div>
+                    <div class="contact-sidebar" id="company-sidebar">
+                        <div class="skeleton" style="height: 300px"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Reviews Section -->
+            <div class="reviews-section" id="reviews-section">
+                <h2 class="reviews-title" data-i18n="company.reviews">Відгуки</h2>
+                <div id="reviews-list">
+                    <div class="skeleton" style="height: 100px; margin-bottom: 1rem"></div>
+                    <div class="skeleton" style="height: 100px"></div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-bottom">
+                © 2025 HAL. Всі права захищені.
+            </div>
+        </div>
+    </footer>
+
+    <script src="/assets/js/app.js"></script>
+    <script>
+        // Get company ID from URL
+        const companyId = window.location.pathname.split('/').pop();
+        let currentImageIndex = 0;
+        let company = null;
+
+        // Load company
+        async function loadCompany() {
+            try {
+                company = await HAL.api.get(`/companies/${companyId}`);
+                renderCompany(company);
+                loadReviews();
+            } catch (error) {
+                console.error('Failed to load company:', error);
+                document.getElementById('company-main').innerHTML = `
+                    <div style="padding: 2rem; text-align: center;">
+                        <p>Компанію не знайдено</p>
+                        <a href="/search" class="btn btn-primary" style="margin-top: 1rem">До каталогу</a>
+                    </div>
+                `;
+            }
+        }
+
+        // Render company
+        function renderCompany(c) {
+            const lang = HAL.state.language;
+            const name = lang === 'uk' ? c.name : c.name_ru;
+            const desc = lang === 'uk' ? c.description : c.description_ru;
+            const images = c.images && c.images.length > 0 ? c.images : [c.image];
+            
+            // Update page title
+            document.title = `${name} - HAL`;
+
+            // Main content
+            document.getElementById('company-main').innerHTML = `
+                <div class="detail-gallery">
+                    <img id="gallery-image" src="${images[0]}" alt="${name}">
+                    ${images.length > 1 ? `
+                        <button class="gallery-nav prev" onclick="prevImage()">‹</button>
+                        <button class="gallery-nav next" onclick="nextImage()">›</button>
+                        <div class="gallery-dots">
+                            ${images.map((_, i) => `<div class="gallery-dot ${i === 0 ? 'active' : ''}" onclick="goToImage(${i})"></div>`).join('')}
+                        </div>
+                    ` : ''}
+                </div>
+                <div class="detail-info">
+                    ${c.is_new ? `<span class="card-badge">${HAL.t('sections.new')}</span>` : ''}
+                    <h1 class="detail-title">${name}</h1>
+                    <div class="detail-rating">
+                        <span class="stars">${HAL.renderStars(c.rating)}</span>
+                        <span class="value">${c.rating}</span>
+                        <span class="rating-count">(${c.review_count} ${lang === 'uk' ? 'відгуків' : 'отзывов'})</span>
+                    </div>
+                    <div class="detail-location">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
+                            <circle cx="12" cy="10" r="3"/>
+                        </svg>
+                        <span>${c.city}, ${c.address}</span>
+                    </div>
+                    <p class="detail-description">${desc}</p>
+                </div>
+            `;
+
+            // Sidebar
+            document.getElementById('company-sidebar').innerHTML = `
+                <h3 class="contact-title" data-i18n="company.contactInfo">${HAL.t('company.contactInfo')}</h3>
+                
+                <div class="contact-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z"/>
+                    </svg>
+                    <a href="tel:${c.phone}">${c.phone}</a>
+                </div>
+                
+                <div class="contact-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/>
+                        <polyline points="22,6 12,13 2,6"/>
+                    </svg>
+                    <a href="mailto:${c.email}">${c.email}</a>
+                </div>
+                
+                ${c.website ? `
+                <div class="contact-item">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <circle cx="12" cy="12" r="10"/>
+                        <line x1="2" y1="12" x2="22" y2="12"/>
+                        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+                    </svg>
+                    <a href="${c.website}" target="_blank">${HAL.t('company.website')}</a>
+                </div>
+                ` : ''}
+
+                <button class="btn btn-primary contact-btn" onclick="alert('Функція в розробці')">
+                    ${HAL.t('company.sendMessage')}
+                </button>
+
+                ${c.lat && c.lng ? `
+                <div class="map-container">
+                    <iframe 
+                        width="100%" 
+                        height="100%" 
+                        frameborder="0" 
+                        style="border:0" 
+                        src="https://www.openstreetmap.org/export/embed.html?bbox=${c.lng-0.01}%2C${c.lat-0.01}%2C${c.lng+0.01}%2C${c.lat+0.01}&layer=mapnik&marker=${c.lat}%2C${c.lng}" 
+                        allowfullscreen>
+                    </iframe>
+                </div>
+                ` : ''}
+            `;
+        }
+
+        // Gallery navigation
+        function updateGallery() {
+            const images = company.images && company.images.length > 0 ? company.images : [company.image];
+            document.getElementById('gallery-image').src = images[currentImageIndex];
+            
+            document.querySelectorAll('.gallery-dot').forEach((dot, i) => {
+                dot.classList.toggle('active', i === currentImageIndex);
+            });
+        }
+
+        function nextImage() {
+            const images = company.images && company.images.length > 0 ? company.images : [company.image];
+            currentImageIndex = (currentImageIndex + 1) % images.length;
+            updateGallery();
+        }
+
+        function prevImage() {
+            const images = company.images && company.images.length > 0 ? company.images : [company.image];
+            currentImageIndex = (currentImageIndex - 1 + images.length) % images.length;
+            updateGallery();
+        }
+
+        function goToImage(index) {
+            currentImageIndex = index;
+            updateGallery();
+        }
+
+        // Load reviews
+        async function loadReviews() {
+            try {
+                const data = await HAL.api.get(`/companies/${companyId}/reviews`);
+                const list = document.getElementById('reviews-list');
+                
+                if (data.reviews.length > 0) {
+                    list.innerHTML = data.reviews.map(HAL.renderReview).join('');
+                } else {
+                    list.innerHTML = `<p style="color: var(--text-gray)">${HAL.t('company.noReviews')}</p>`;
+                }
+            } catch (error) {
+                console.error('Failed to load reviews:', error);
+            }
+        }
+
+        // Initialize
+        loadCompany();
+    </script>
+</body>
+</html>
