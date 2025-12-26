@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Вхід - HAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .auth-container {
+            min-height: calc(100vh - 70px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+        }
+        .auth-box {
+            background: var(--bg-white);
+            padding: 2.5rem;
+            border-radius: var(--radius-lg);
+            box-shadow: var(--shadow-md);
+            width: 100%;
+            max-width: 400px;
+        }
+        .auth-title {
+            font-size: 1.5rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-footer {
+            text-align: center;
+            margin-top: 1.5rem;
+            color: var(--text-gray);
+        }
+        .auth-footer a {
+            color: var(--primary);
+            font-weight: 500;
+        }
+        .error-message {
+            background: #fef2f2;
+            border: 1px solid #fecaca;
+            color: #dc2626;
+            padding: 0.75rem;
+            border-radius: var(--radius);
+            margin-bottom: 1rem;
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="/" class="logo">HAL</a>
+            <nav class="nav">
+                <a href="/" class="nav-link">Головна</a>
+                <a href="/search" class="nav-link">Пошук</a>
+                <a href="/blog" class="nav-link">Блог</a>
+            </nav>
+            <div class="nav-actions">
+                <div class="lang-switch">
+                    <button class="lang-btn active" data-lang="uk">UA</button>
+                    <button class="lang-btn" data-lang="ru">RU</button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <main class="auth-container" style="margin-top: 70px">
+        <div class="auth-box">
+            <h1 class="auth-title">Вхід</h1>
+            
+            <div id="error-message" class="error-message"></div>
+            
+            <form id="login-form">
+                <div class="form-group">
+                    <label class="form-label">Email</label>
+                    <input type="email" class="form-input" id="email" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Пароль</label>
+                    <input type="password" class="form-input" id="password" required>
+                </div>
+                <button type="submit" class="btn btn-primary btn-lg" style="width: 100%">
+                    Увійти
+                </button>
+            </form>
+            
+            <div class="auth-footer">
+                Немає акаунту? <a href="/register">Зареєструватися</a>
+            </div>
+        </div>
+    </main>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        document.getElementById('login-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            
+            const errorEl = document.getElementById('error-message');
+            errorEl.style.display = 'none';
+            
+            const data = {
+                email: document.getElementById('email').value,
+                password: document.getElementById('password').value
+            };
+
+            try {
+                const result = await HAL.api.post('/auth/login', data);
+                HAL.setAuth(result.user, result.token);
+                window.location.href = '/dashboard';
+            } catch (error) {
+                errorEl.textContent = 'Невірний email або пароль';
+                errorEl.style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>
