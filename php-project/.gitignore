@@ -1,0 +1,78 @@
+# Dependencies
+/vendor/
+/node_modules/
+composer.lock
+package-lock.json
+yarn.lock
+
+# Environment files
+.env
+.env.local
+.env.*.local
+api/config/database.local.php
+
+# IDE
+.idea/
+.vscode/
+*.sublime-project
+*.sublime-workspace
+.project
+.settings/
+
+# OS files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+*.swp
+*.swo
+*~
+
+# Logs
+*.log
+logs/
+/var/log/
+
+# Cache
+/cache/
+*.cache
+.php_cs.cache
+
+# Temporary files
+/tmp/
+/temp/
+*.tmp
+
+# Build files
+/dist/
+/build/
+
+# Uploads (user content)
+/uploads/*
+!/uploads/.gitkeep
+
+# Backup files
+*.bak
+*.backup
+*.sql.gz
+
+# Security
+*.pem
+*.key
+*.crt
+.htpasswd
+
+# PHPUnit
+/coverage/
+.phpunit.result.cache
+phpunit.xml
+
+# Composer
+/composer.phar
+
+# Local development
+docker-compose.override.yml
+*.local.php
