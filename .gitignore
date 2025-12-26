@@ -53,3 +53,7 @@ Thumbs.db
 
 # Emergent platform files
 .emergent/
+-e 
+# Environment files
+*.env
+*.env.*
