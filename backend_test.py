@@ -11,7 +11,7 @@ from datetime import datetime
 import uuid
 
 # Backend URL from frontend .env
-BASE_URL = "https://hal-rebuild.preview.emergentagent.com/api"
+BASE_URL = "https://ukrbizdir.preview.emergentagent.com/api"
 
 class HALAPITester:
     def __init__(self):

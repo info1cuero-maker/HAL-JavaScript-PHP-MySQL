@@ -1,8 +1,8 @@
 # 📥 ПРЯМЫЕ ССЫЛКИ ДЛЯ СКАЧИВАНИЯ ФАЙЛОВ
 
 ## Ваш сайт доступен по адресу:
-**Frontend:** https://hal-rebuild.preview.emergentagent.com
-**Страница скачивания:** https://hal-rebuild.preview.emergentagent.com/download
+**Frontend:** https://ukrbizdir.preview.emergentagent.com
+**Страница скачивания:** https://ukrbizdir.preview.emergentagent.com/download
 
 ---
 
@@ -12,27 +12,27 @@
 
 1. **Компании (CSV для WP All Import)** ⭐ РЕКОМЕНДУЕТСЯ
    ```
-   https://hal-rebuild.preview.emergentagent.com/api/download/companies_for_wordpress.csv
+   https://ukrbizdir.preview.emergentagent.com/api/download/companies_for_wordpress.csv
    ```
 
 2. **Статьи блога (CSV для WP All Import)** ⭐ РЕКОМЕНДУЕТСЯ
    ```
-   https://hal-rebuild.preview.emergentagent.com/api/download/blog_posts_for_wordpress.csv
+   https://ukrbizdir.preview.emergentagent.com/api/download/blog_posts_for_wordpress.csv
    ```
 
 3. **Полный экспорт (WordPress XML)**
    ```
-   https://hal-rebuild.preview.emergentagent.com/api/download/hal_wordpress_export.xml
+   https://ukrbizdir.preview.emergentagent.com/api/download/hal_wordpress_export.xml
    ```
 
 4. **Компании (JSON)**
    ```
-   https://hal-rebuild.preview.emergentagent.com/api/download/companies.json
+   https://ukrbizdir.preview.emergentagent.com/api/download/companies.json
    ```
 
 5. **Статьи блога (JSON)**
    ```
-   https://hal-rebuild.preview.emergentagent.com/api/download/blog_posts.json
+   https://ukrbizdir.preview.emergentagent.com/api/download/blog_posts.json
    ```
 
 ---
@@ -42,7 +42,7 @@
 ### Вариант 1: Через браузер (Просто)
 1. Откройте эту ссылку в браузере:
    ```
-   https://hal-rebuild.preview.emergentagent.com/download
+   https://ukrbizdir.preview.emergentagent.com/download
    ```
 2. Нажмите кнопку "Завантажити" возле нужного файла
 
@@ -52,11 +52,11 @@
 ### Вариант 3: Через curl (Для терминала)
 ```bash
 # Скачать все файлы одной командой
-curl -O https://hal-rebuild.preview.emergentagent.com/api/download/companies_for_wordpress.csv
-curl -O https://hal-rebuild.preview.emergentagent.com/api/download/blog_posts_for_wordpress.csv
-curl -O https://hal-rebuild.preview.emergentagent.com/api/download/hal_wordpress_export.xml
-curl -O https://hal-rebuild.preview.emergentagent.com/api/download/companies.json
-curl -O https://hal-rebuild.preview.emergentagent.com/api/download/blog_posts.json
+curl -O https://ukrbizdir.preview.emergentagent.com/api/download/companies_for_wordpress.csv
+curl -O https://ukrbizdir.preview.emergentagent.com/api/download/blog_posts_for_wordpress.csv
+curl -O https://ukrbizdir.preview.emergentagent.com/api/download/hal_wordpress_export.xml
+curl -O https://ukrbizdir.preview.emergentagent.com/api/download/companies.json
+curl -O https://ukrbizdir.preview.emergentagent.com/api/download/blog_posts.json
 ```
 
 ---
@@ -92,7 +92,7 @@ curl -O https://hal-rebuild.preview.emergentagent.com/api/download/blog_posts.js
 ### Файл не скачивается?
 1. Проверьте что backend работает:
    ```
-   https://hal-rebuild.preview.emergentagent.com/api/
+   https://ukrbizdir.preview.emergentagent.com/api/
    ```
    Должно показать: `{"message":"HAL API v1.0"}`
 

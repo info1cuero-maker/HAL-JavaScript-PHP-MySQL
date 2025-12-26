@@ -7,7 +7,7 @@ import requests
 import json
 import uuid
 
-BASE_URL = "https://hal-rebuild.preview.emergentagent.com/api"
+BASE_URL = "https://ukrbizdir.preview.emergentagent.com/api"
 
 class HALAPIAdditionalTester:
     def __init__(self):
