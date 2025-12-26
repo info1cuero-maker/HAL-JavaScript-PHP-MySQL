@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Пошук - HAL</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="assets/css/style.css">
+</head>
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="container header-inner">
+            <a href="/" class="logo">HAL</a>
+            <nav class="nav">
+                <a href="/" class="nav-link">Головна</a>
+                <a href="/search" class="nav-link">Пошук</a>
+                <a href="/blog" class="nav-link">Блог</a>
+                <a href="/contacts" class="nav-link">Контакти</a>
+                <a href="/about" class="nav-link">Про нас</a>
+            </nav>
+            <div class="nav-actions">
+                <div class="lang-switch">
+                    <button class="lang-btn active" data-lang="uk">UA</button>
+                    <button class="lang-btn" data-lang="ru">RU</button>
+                </div>
+                <div class="auth-links">
+                    <a href="/login" class="btn btn-outline">Увійти</a>
+                    <a href="/register" class="btn btn-primary">Реєстрація</a>
+                </div>
+            </div>
+            <button class="mobile-menu-btn">☰</button>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="page-content">
+        <div class="container">
+            <!-- Search Box -->
+            <div class="search-box">
+                <h1 class="section-title mb-3" data-i18n="nav.search">Пошук</h1>
+                
+                <form id="search-form" class="search-form">
+                    <input type="text" id="search-input" class="search-input" placeholder="Шукати послугу...">
+                    <button type="submit" class="btn btn-primary">Шукати</button>
+                </form>
+                
+                <div class="filters-row">
+                    <select id="category-filter" class="filter-select">
+                        <option value="">Всі категорії</option>
+                    </select>
+                    <select id="sort-filter" class="filter-select">
+                        <option value="recent">Нові</option>
+                        <option value="popular">Популярні</option>
+                        <option value="rating">За рейтингом</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="results-count">
+                <span data-i18n="search.found">Знайдено</span>: <span id="total-count">0</span> <span data-i18n="search.companies">компаній</span>
+            </div>
+
+            <div id="results-grid" class="cards-grid">
+                <!-- Results will be loaded here -->
+            </div>
+
+            <!-- Empty State -->
+            <div id="empty-state" class="empty-state" style="display: none;">
+                <div class="empty-state-icon">🔍</div>
+                <p class="empty-state-text" data-i18n="search.nothingFound">Нічого не знайдено</p>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="container">
+            <div class="footer-grid">
+                <div>
+                    <div class="footer-logo">HAL</div>
+                    <p class="footer-desc">Каталог компаній та послуг України</p>
+                </div>
+                <div>
+                    <div class="footer-title">Навігація</div>
+                    <ul class="footer-links">
+                        <li><a href="/">Головна</a></li>
+                        <li><a href="/search">Пошук</a></li>
+                        <li><a href="/blog">Блог</a></li>
+                        <li><a href="/about">Про нас</a></li>
+                    </ul>
+                </div>
+                <div>
+                    <div class="footer-title">Контакти</div>
+                    <ul class="footer-links">
+                        <li>+380 44 123 4567</li>
+                        <li>info@hal.in.ua</li>
+                    </ul>
+                </div>
+            </div>
+            <div class="footer-bottom">
+                © 2025 HAL. Всі права захищені.
+            </div>
+        </div>
+    </footer>
+
+    <script src="assets/js/app.js"></script>
+    <script>
+        let currentCategory = HAL.getUrlParam('category') || '';
+        let currentSearch = HAL.getUrlParam('q') || '';
+        let currentSort = HAL.getUrlParam('sort') || 'recent';
+
+        // Load categories for filter
+        async function loadCategories() {
+            try {
+                const categories = await HAL.api.get('/categories');
+                const select = document.getElementById('category-filter');
+                
+                categories.forEach(cat => {
+                    const name = HAL.state.language === 'uk' ? cat.nameUk : cat.nameRu;
+                    const option = document.createElement('option');
+                    option.value = cat.id;
+                    option.textContent = name;
+                    if (cat.id === currentCategory) option.selected = true;
+                    select.appendChild(option);
+                });
+            } catch (error) {
+                console.error('Failed to load categories:', error);
+            }
+        }
+
+        // Load companies
+        async function loadCompanies() {
+            const grid = document.getElementById('results-grid');
+            const emptyState = document.getElementById('empty-state');
+            const countEl = document.getElementById('total-count');
+            
+            grid.innerHTML = HAL.renderSkeleton('card', 8);
+            emptyState.style.display = 'none';
+            
+            try {
+                let url = `/companies?limit=50&sort=${currentSort}`;
+                if (currentCategory) url += `&category=${currentCategory}`;
+                if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
+                
+                const data = await HAL.api.get(url);
+                
+                countEl.textContent = data.total;
+                
+                if (data.companies.length > 0) {
+                    grid.innerHTML = data.companies.map(HAL.renderCompanyCard).join('');
+                    grid.style.display = 'grid';
+                    emptyState.style.display = 'none';
+                } else {
+                    grid.innerHTML = '';
+                    grid.style.display = 'none';
+                    emptyState.style.display = 'block';
+                }
+            } catch (error) {
+                console.error('Failed to load companies:', error);
+                grid.innerHTML = '<p>Помилка завантаження</p>';
+            }
+        }
+
+        // Update URL
+        function updateUrl() {
+            const params = new URLSearchParams();
+            if (currentCategory) params.set('category', currentCategory);
+            if (currentSearch) params.set('q', currentSearch);
+            if (currentSort !== 'recent') params.set('sort', currentSort);
+            
+            const newUrl = '/search' + (params.toString() ? '?' + params.toString() : '');
+            window.history.pushState({}, '', newUrl);
+        }
+
+        // Event listeners
+        document.getElementById('search-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            currentSearch = document.getElementById('search-input').value;
+            updateUrl();
+            loadCompanies();
+        });
+
+        document.getElementById('category-filter').addEventListener('change', (e) => {
+            currentCategory = e.target.value;
+            updateUrl();
+            loadCompanies();
+        });
+
+        document.getElementById('sort-filter').addEventListener('change', (e) => {
+            currentSort = e.target.value;
+            updateUrl();
+            loadCompanies();
+        });
+
+        // Initialize
+        document.getElementById('search-input').value = currentSearch;
+        document.getElementById('sort-filter').value = currentSort;
+        
+        loadCategories();
+        loadCompanies();
+    </script>
+</body>
+</html>
