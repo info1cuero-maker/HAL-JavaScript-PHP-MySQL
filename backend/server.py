@@ -641,6 +641,19 @@ async def download_file(filename: str):
     )
 
 
+@api_router.get("/download/php-project")
+async def download_php_project():
+    """Download PHP project archive"""
+    file_path = ROOT_DIR / "static" / "hal-php-project.zip"
+    if not file_path.exists():
+        raise HTTPException(status_code=404, detail="File not found")
+    return FileResponse(
+        path=str(file_path),
+        filename="hal-php-project.zip",
+        media_type='application/zip'
+    )
+
+
 # Include the router in the main app
 app.include_router(api_router)
 
