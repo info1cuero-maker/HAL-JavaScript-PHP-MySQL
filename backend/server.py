@@ -641,7 +641,7 @@ async def download_file(filename: str):
     )
 
 
-@api_router.get("/download/php-project")
+@api_router.get("/download-project/php")
 async def download_php_project():
     """Download PHP project archive"""
     file_path = ROOT_DIR / "static" / "hal-php-project.zip"
