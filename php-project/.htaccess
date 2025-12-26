@@ -1,0 +1,22 @@
+RewriteEngine On
+RewriteBase /
+
+# Handle API requests
+RewriteRule ^api/(.*)$ api/index.php [QSA,L]
+
+# Redirect all other requests to appropriate HTML files
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^search$ search.html [L]
+RewriteRule ^company/(.*)$ company.html [L]
+RewriteRule ^blog$ blog.html [L]
+RewriteRule ^blog/(.*)$ blog-post.html [L]
+RewriteRule ^contacts$ contacts.html [L]
+RewriteRule ^about$ about.html [L]
+RewriteRule ^add-business$ add-business.html [L]
+RewriteRule ^login$ login.html [L]
+RewriteRule ^register$ register.html [L]
+RewriteRule ^dashboard$ dashboard.html [L]
+
+# Default charset
+AddDefaultCharset UTF-8
