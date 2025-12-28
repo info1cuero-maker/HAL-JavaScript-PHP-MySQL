@@ -307,9 +307,14 @@
                 if (currentCategory) url += `&category=${currentCategory}`;
                 
                 const data = await HAL.api.get(url);
-                totalPages = data.pages;
                 
-                if (data.posts.length > 0) {
+                if (!data || typeof data.pages === 'undefined') {
+                    throw new Error('Invalid API response');
+                }
+                
+                totalPages = data.pages || 1;
+                
+                if (data.posts && data.posts.length > 0) {
                     grid.innerHTML = data.posts.map(HAL.renderBlogCard).join('');
                     grid.style.display = 'grid';
                     emptyState.style.display = 'none';
@@ -322,7 +327,17 @@
                 }
             } catch (error) {
                 console.error('Failed to load blog:', error);
-                grid.innerHTML = '<p style="padding: 2rem; text-align: center; color: var(--text-gray)">Помилка завантаження</p>';
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: 3rem; text-align: center;">
+                        <div style="font-size: 3rem; margin-bottom: 1rem">⚠️</div>
+                        <h3 style="margin-bottom: 0.5rem; color: var(--text-dark)">Помилка завантаження</h3>
+                        <p style="color: var(--text-gray); margin-bottom: 1rem">
+                            Не вдалося завантажити дані з сервера.<br>
+                            <small>Переконайтеся, що PHP/MySQL сервер запущено.</small>
+                        </p>
+                        <button class="btn btn-outline" onclick="loadBlog()">Спробувати знову</button>
+                    </div>
+                `;
             }
         }
 
