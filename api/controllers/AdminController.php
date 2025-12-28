@@ -682,7 +682,7 @@ class AdminController {
             }
         }
         
-        $allowedFields = ['category_id', 'title_uk', 'title_ru', 'slug', 'content_uk', 'content_ru', 'excerpt_uk', 'excerpt_ru', 'featured_image', 'status', 'published_at'];
+        $allowedFields = ['category_id', 'title_uk', 'title_ru', 'slug', 'content_uk', 'content_ru', 'excerpt_uk', 'excerpt_ru', 'featured_image', 'status', 'published_at', 'meta_title_uk', 'meta_title_ru', 'meta_description_uk', 'meta_description_ru', 'meta_keywords_uk', 'meta_keywords_ru'];
         
         $fields = [];
         $params = [];
