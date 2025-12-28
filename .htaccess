@@ -17,6 +17,7 @@ RewriteRule ^add-business$ add-business.html [L]
 RewriteRule ^login$ login.html [L]
 RewriteRule ^register$ register.html [L]
 RewriteRule ^dashboard$ dashboard.html [L]
+RewriteRule ^admin$ admin.html [L]
 
 # Default charset
 AddDefaultCharset UTF-8
