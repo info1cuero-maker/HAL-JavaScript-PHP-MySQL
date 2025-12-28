@@ -22,15 +22,26 @@ $method = $_SERVER['REQUEST_METHOD'];
 
 // Route mapping
 $routes = [
-    // Companies
+    // ==================== PUBLIC ROUTES ====================
+    
+    // Home
+    'GET ' => 'controllers/HomeController.php@index',
+    
+    // Companies (public)
     'GET companies' => 'controllers/CompanyController.php@getAll',
     'GET companies/(\d+)' => 'controllers/CompanyController.php@getById',
     'POST companies' => 'controllers/CompanyController.php@create',
-    'PUT companies/(\d+)' => 'controllers/CompanyController.php@update',
-    'DELETE companies/(\d+)' => 'controllers/CompanyController.php@delete',
     
-    // Categories
+    // Categories (public)
     'GET categories' => 'controllers/CategoryController.php@getAll',
+    
+    // Reviews (public)
+    'GET companies/(\d+)/reviews' => 'controllers/ReviewController.php@getByCompany',
+    'POST companies/(\d+)/reviews' => 'controllers/ReviewController.php@create',
+    
+    // Blog (public)
+    'GET blog' => 'controllers/BlogController.php@getAll',
+    'GET blog/(\d+)' => 'controllers/BlogController.php@getById',
     
     // Auth
     'POST auth/register' => 'controllers/AuthController.php@register',
@@ -42,19 +53,65 @@ $routes = [
     'GET users/me/companies' => 'controllers/UserController.php@myCompanies',
     'PUT users/me' => 'controllers/UserController.php@updateProfile',
     
-    // Reviews
-    'GET companies/(\d+)/reviews' => 'controllers/ReviewController.php@getByCompany',
-    'POST companies/(\d+)/reviews' => 'controllers/ReviewController.php@create',
-    
-    // Blog
-    'GET blog' => 'controllers/BlogController.php@getAll',
-    'GET blog/(\d+)' => 'controllers/BlogController.php@getById',
-    
     // Contact
     'POST contact' => 'controllers/ContactController.php@send',
     
-    // Root
-    'GET ' => 'controllers/HomeController.php@index'
+    // ==================== ADMIN ROUTES ====================
+    
+    // Dashboard
+    'GET admin/dashboard' => 'controllers/AdminController.php@dashboard',
+    
+    // Categories management
+    'GET admin/categories' => 'controllers/AdminController.php@getCategories',
+    'POST admin/categories' => 'controllers/AdminController.php@createCategory',
+    'PUT admin/categories/(\d+)' => 'controllers/AdminController.php@updateCategory',
+    'DELETE admin/categories/(\d+)' => 'controllers/AdminController.php@deleteCategory',
+    
+    // Companies management
+    'GET admin/companies' => 'controllers/AdminController.php@getCompanies',
+    'GET admin/companies/(\d+)' => 'controllers/AdminController.php@getCompany',
+    'POST admin/companies' => 'controllers/AdminController.php@createCompany',
+    'PUT admin/companies/(\d+)' => 'controllers/AdminController.php@updateCompany',
+    'DELETE admin/companies/(\d+)' => 'controllers/AdminController.php@deleteCompany',
+    
+    // Company images
+    'POST admin/companies/(\d+)/images' => 'controllers/AdminController.php@uploadCompanyImage',
+    'DELETE admin/images/(\d+)' => 'controllers/AdminController.php@deleteCompanyImage',
+    'PUT admin/companies/(\d+)/images/(\d+)/main' => 'controllers/AdminController.php@setMainImage',
+    
+    // Blog categories management
+    'GET admin/blog-categories' => 'controllers/AdminController.php@getBlogCategories',
+    'POST admin/blog-categories' => 'controllers/AdminController.php@createBlogCategory',
+    'PUT admin/blog-categories/(\d+)' => 'controllers/AdminController.php@updateBlogCategory',
+    'DELETE admin/blog-categories/(\d+)' => 'controllers/AdminController.php@deleteBlogCategory',
+    
+    // Blog posts management
+    'GET admin/blog' => 'controllers/AdminController.php@getBlogPosts',
+    'POST admin/blog' => 'controllers/AdminController.php@createBlogPost',
+    'PUT admin/blog/(\d+)' => 'controllers/AdminController.php@updateBlogPost',
+    'DELETE admin/blog/(\d+)' => 'controllers/AdminController.php@deleteBlogPost',
+    
+    // Reviews moderation
+    'GET admin/reviews' => 'controllers/AdminController.php@getReviews',
+    'PUT admin/reviews/(\d+)/moderate' => 'controllers/AdminController.php@moderateReview',
+    'DELETE admin/reviews/(\d+)' => 'controllers/AdminController.php@deleteReview',
+    
+    // Users management
+    'GET admin/users' => 'controllers/AdminController.php@getUsers',
+    'PUT admin/users/(\d+)/role' => 'controllers/AdminController.php@updateUserRole',
+    'PUT admin/users/(\d+)/toggle-status' => 'controllers/AdminController.php@toggleUserStatus',
+    
+    // Settings
+    'GET admin/settings' => 'controllers/AdminController.php@getSettings',
+    'PUT admin/settings' => 'controllers/AdminController.php@updateSettings',
+    
+    // Messages
+    'GET admin/messages' => 'controllers/AdminController.php@getMessages',
+    'PUT admin/messages/(\d+)/read' => 'controllers/AdminController.php@markMessageRead',
+    'DELETE admin/messages/(\d+)' => 'controllers/AdminController.php@deleteMessage',
+    
+    // Logs
+    'GET admin/logs' => 'controllers/AdminController.php@getLogs',
 ];
 
 // Find matching route
