@@ -229,6 +229,168 @@ const api = {
     }
 };
 
+// ==================== SEO MANAGER ====================
+
+/**
+ * Динамічне завантаження SEO-тегів зі сторінки
+ */
+const SEO = {
+    /**
+     * Завантажити та застосувати SEO-теги для поточної сторінки
+     */
+    async loadPageSeo(pageSlug) {
+        try {
+            const data = await api.get(`/pages/${pageSlug}`);
+            this.apply(data);
+        } catch (error) {
+            console.warn('Failed to load page SEO:', error);
+        }
+    },
+    
+    /**
+     * Завантажити SEO для категорії
+     */
+    async loadCategorySeo(category) {
+        if (category.meta_title_uk || category.meta_title_ru) {
+            this.apply({
+                meta_title_uk: category.meta_title_uk,
+                meta_title_ru: category.meta_title_ru,
+                meta_description_uk: category.meta_description_uk,
+                meta_description_ru: category.meta_description_ru,
+                meta_keywords_uk: category.meta_keywords_uk,
+                meta_keywords_ru: category.meta_keywords_ru
+            });
+        }
+    },
+    
+    /**
+     * Завантажити SEO для компанії
+     */
+    async loadCompanySeo(company) {
+        const lang = state.language;
+        const name = lang === 'uk' ? company.name : (company.name_ru || company.name);
+        
+        // Використати кастомні SEO або згенерувати з даних компанії
+        const title = (lang === 'uk' ? company.meta_title_uk : company.meta_title_ru) || `${name} - HAL`;
+        const description = (lang === 'uk' ? company.meta_description_uk : company.meta_description_ru) || 
+            `${name}. ${company.city}, ${company.address}. Телефон: ${company.phone}`;
+        const keywords = (lang === 'uk' ? company.meta_keywords_uk : company.meta_keywords_ru) || 
+            `${name}, ${company.city}, ${company.category_name || ''}`;
+        
+        this.set(title, description, keywords);
+    },
+    
+    /**
+     * Завантажити SEO для статті блогу
+     */
+    async loadBlogPostSeo(post) {
+        const lang = state.language;
+        const title = lang === 'uk' ? post.title_uk : post.title_ru;
+        
+        const metaTitle = (lang === 'uk' ? post.meta_title_uk : post.meta_title_ru) || `${title} - HAL Блог`;
+        const metaDesc = (lang === 'uk' ? post.meta_description_uk : post.meta_description_ru) || 
+            (lang === 'uk' ? post.excerpt_uk : post.excerpt_ru);
+        const metaKeywords = (lang === 'uk' ? post.meta_keywords_uk : post.meta_keywords_ru) || '';
+        
+        this.set(metaTitle, metaDesc, metaKeywords);
+    },
+    
+    /**
+     * Застосувати SEO-дані
+     */
+    apply(data) {
+        const lang = state.language;
+        const title = lang === 'uk' ? data.meta_title_uk : data.meta_title_ru;
+        const description = lang === 'uk' ? data.meta_description_uk : data.meta_description_ru;
+        const keywords = lang === 'uk' ? data.meta_keywords_uk : data.meta_keywords_ru;
+        
+        this.set(title, description, keywords);
+    },
+    
+    /**
+     * Встановити SEO-теги
+     */
+    set(title, description, keywords) {
+        // Title
+        if (title) {
+            document.title = title;
+        }
+        
+        // Meta Description
+        if (description) {
+            let metaDesc = document.querySelector('meta[name="description"]');
+            if (!metaDesc) {
+                metaDesc = document.createElement('meta');
+                metaDesc.name = 'description';
+                document.head.appendChild(metaDesc);
+            }
+            metaDesc.content = description;
+        }
+        
+        // Meta Keywords
+        if (keywords) {
+            let metaKeywords = document.querySelector('meta[name="keywords"]');
+            if (!metaKeywords) {
+                metaKeywords = document.createElement('meta');
+                metaKeywords.name = 'keywords';
+                document.head.appendChild(metaKeywords);
+            }
+            metaKeywords.content = keywords;
+        }
+        
+        // Open Graph
+        this.setOG('og:title', title);
+        this.setOG('og:description', description);
+    },
+    
+    /**
+     * Встановити Open Graph тег
+     */
+    setOG(property, content) {
+        if (!content) return;
+        
+        let ogTag = document.querySelector(`meta[property="${property}"]`);
+        if (!ogTag) {
+            ogTag = document.createElement('meta');
+            ogTag.setAttribute('property', property);
+            document.head.appendChild(ogTag);
+        }
+        ogTag.content = content;
+    },
+    
+    /**
+     * Автоматичне визначення сторінки за URL та завантаження SEO
+     */
+    async autoLoad() {
+        const path = window.location.pathname;
+        
+        // Визначити slug сторінки
+        let pageSlug = 'home';
+        
+        if (path === '/' || path === '/index.html') {
+            pageSlug = 'home';
+        } else if (path.startsWith('/search')) {
+            pageSlug = 'search';
+        } else if (path === '/blog' || path === '/blog.html') {
+            pageSlug = 'blog';
+        } else if (path.startsWith('/about')) {
+            pageSlug = 'about';
+        } else if (path.startsWith('/contacts')) {
+            pageSlug = 'contacts';
+        } else {
+            // Для динамічних сторінок (компанії, статті) SEO завантажується окремо
+            return;
+        }
+        
+        await this.loadPageSeo(pageSlug);
+    }
+};
+
+// Автозавантаження SEO при готовності DOM
+document.addEventListener('DOMContentLoaded', () => {
+    SEO.autoLoad();
+});
+
 // Utility functions
 function formatDate(dateString) {
     const date = new Date(dateString);
