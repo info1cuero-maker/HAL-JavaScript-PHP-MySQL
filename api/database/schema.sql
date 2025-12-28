@@ -127,6 +127,13 @@ CREATE TABLE IF NOT EXISTS companies (
     is_active BOOLEAN DEFAULT TRUE,
     is_featured BOOLEAN DEFAULT FALSE,
     user_id INT,
+    -- SEO fields
+    meta_title_uk VARCHAR(255),
+    meta_title_ru VARCHAR(255),
+    meta_description_uk TEXT,
+    meta_description_ru TEXT,
+    meta_keywords_uk VARCHAR(500),
+    meta_keywords_ru VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_category_id (category_id),
