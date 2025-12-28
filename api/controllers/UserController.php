@@ -260,7 +260,7 @@ class UserController {
             Response::error('Access denied', 403);
         }
         
-        $allowedFields = ['name', 'name_ru', 'description', 'description_ru', 'city', 'address', 'phone', 'email', 'website'];
+        $allowedFields = ['name', 'name_ru', 'description', 'description_ru', 'city', 'address', 'phone', 'email', 'website', 'meta_title_uk', 'meta_title_ru', 'meta_description_uk', 'meta_description_ru', 'meta_keywords_uk', 'meta_keywords_ru'];
         
         $fields = [];
         $params = [];
