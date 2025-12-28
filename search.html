@@ -355,10 +355,16 @@
         async function loadCategories() {
             try {
                 const categories = await HAL.api.get('/categories?includeEmpty=true');
-                categoriesData = categories;
-                renderCategoryTree(categories);
+                if (Array.isArray(categories)) {
+                    categoriesData = categories;
+                    renderCategoryTree(categories);
+                } else {
+                    console.error('Categories is not an array:', categories);
+                    document.getElementById('categories-tree').innerHTML = '<li style="color: var(--text-gray); font-size: 0.875rem">Не вдалося завантажити</li>';
+                }
             } catch (error) {
                 console.error('Failed to load categories:', error);
+                document.getElementById('categories-tree').innerHTML = '<li style="color: var(--text-gray); font-size: 0.875rem">Не вдалося завантажити</li>';
             }
         }
 
