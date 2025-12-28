@@ -373,22 +373,24 @@ function renderCompanyCard(company) {
 // Category card component
 function renderCategoryCard(category) {
     const name = state.language === 'uk' ? category.nameUk : category.nameRu;
+    const count = category.count || 0;
     const icons = {
-        cafe: '🍽️',
-        sport: '💪',
-        beauty: '✨',
-        art: '🎨',
+        utensils: '🍽️',
+        dumbbell: '💪',
+        sparkles: '✨',
+        palette: '🎨',
         home: '🏠',
-        auto: '🚗',
-        construction: '🔨',
-        other: '📦'
+        car: '🚗',
+        hammer: '🔨',
+        'more-horizontal': '📦',
+        folder: '📁'
     };
     
     return `
         <a href="/search?category=${category.id}" class="category-card">
-            <div class="category-icon">${icons[category.id] || '📦'}</div>
+            <div class="category-icon">${icons[category.icon] || icons[category.slug] || '📦'}</div>
             <div class="category-name">${name}</div>
-            <div class="category-count">${category.count} ${state.language === 'uk' ? 'компаній' : 'компаний'}</div>
+            <div class="category-count">${count} ${state.language === 'uk' ? 'компаній' : 'компаний'}</div>
         </a>
     `;
 }
