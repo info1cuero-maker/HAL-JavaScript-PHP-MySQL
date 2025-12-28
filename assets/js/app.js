@@ -335,28 +335,35 @@ function updateAuthUI() {
 
 // Company card component
 function renderCompanyCard(company) {
-    const name = state.language === 'uk' ? company.name : company.name_ru;
+    const name = state.language === 'uk' ? company.name : (company.name_ru || company.name);
     const isNew = company.is_new;
+    const rating = parseFloat(company.rating) || 0;
+    const reviewCount = parseInt(company.review_count) || 0;
+    const address = company.address || '';
+    const city = company.city || '';
+    
+    // Default image if not set
+    const image = company.image || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=300&fit=crop';
     
     return `
         <a href="/company/${company.id}" class="company-card">
             <div class="card-image">
-                <img src="${company.image}" alt="${name}" loading="lazy">
+                <img src="${image}" alt="${name}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=400&h=300&fit=crop'">
                 ${isNew ? `<span class="card-badge">${t('sections.new')}</span>` : ''}
             </div>
             <div class="card-body">
                 <h3 class="card-title">${name}</h3>
                 <div class="card-rating">
-                    <span class="stars">${renderStars(company.rating)}</span>
-                    <span class="rating-value">${company.rating}</span>
-                    <span class="rating-count">(${company.review_count})</span>
+                    <span class="stars">${renderStars(rating)}</span>
+                    <span class="rating-value">${rating.toFixed(1)}</span>
+                    <span class="rating-count">(${reviewCount})</span>
                 </div>
                 <div class="card-location">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/>
                         <circle cx="12" cy="10" r="3"/>
                     </svg>
-                    ${company.city}, ${company.address.substring(0, 30)}...
+                    ${city}${address ? ', ' + address.substring(0, 25) + (address.length > 25 ? '...' : '') : ''}
                 </div>
             </div>
         </a>
