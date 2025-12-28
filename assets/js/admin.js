@@ -246,6 +246,12 @@ function openCategoryModal(id = null) {
     const cat = id ? adminState.categories.find(c => c.id === id) : null;
     const isEdit = !!cat;
     
+    // Get parent categories for dropdown
+    const parentOptions = adminState.categories
+        .filter(c => !c.parent_id && c.id !== id) // Only root categories, exclude self
+        .map(c => `<option value="${c.id}" ${cat?.parent_id == c.id ? 'selected' : ''}>${c.name_uk}</option>`)
+        .join('');
+    
     openModal(isEdit ? 'Редагувати категорію' : 'Нова категорія', `
         <form id="category-form" onsubmit="saveCategory(event, ${id || 'null'})">
             <div class="form-row">
@@ -257,6 +263,13 @@ function openCategoryModal(id = null) {
                     <label class="form-label">Іконка</label>
                     <input type="text" class="form-input" name="icon" value="${cat?.icon || 'folder'}" placeholder="folder">
                 </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Батьківська категорія</label>
+                <select class="form-input" name="parent_id">
+                    <option value="">-- Немає (коренева) --</option>
+                    ${parentOptions}
+                </select>
             </div>
             <div class="form-row">
                 <div class="form-group">
@@ -305,6 +318,7 @@ async function saveCategory(e, id) {
     const data = Object.fromEntries(new FormData(form));
     data.is_active = data.is_active === '1';
     data.sort_order = parseInt(data.sort_order) || 0;
+    data.parent_id = data.parent_id ? parseInt(data.parent_id) : null;
     
     try {
         if (id) {
