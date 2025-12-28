@@ -640,5 +640,6 @@ window.HAL = {
     renderCategoryCard,
     renderBlogCard,
     renderReview,
-    renderSkeleton
+    renderSkeleton,
+    SEO
 };
