@@ -1379,6 +1379,143 @@ function openModal(title, content, size = '') {
     if (size) modal.classList.add(size);
 }
 
+// ==================== STATIC PAGES (SEO) ====================
+
+async function loadPages() {
+    const content = document.getElementById('content');
+    content.innerHTML = '<div class="skeleton" style="height: 400px"></div>';
+    
+    try {
+        const pages = await HAL.api.get('/admin/pages');
+        
+        const pageIcons = {
+            home: '🏠',
+            search: '🔍',
+            blog: '📝',
+            about: 'ℹ️',
+            contacts: '📞'
+        };
+        
+        content.innerHTML = `
+            <div class="data-table-container">
+                <div class="table-header">
+                    <h3 class="table-title">Статичні сторінки та SEO налаштування</h3>
+                </div>
+                <p style="padding: 0 1.5rem; color: var(--text-gray); margin-bottom: 1rem">
+                    Налаштуйте SEO-теги (title, description, keywords) для кожної сторінки сайту.
+                </p>
+                <table class="data-table">
+                    <thead>
+                        <tr>
+                            <th></th>
+                            <th>Сторінка</th>
+                            <th>Meta Title (UA)</th>
+                            <th>Meta Description (UA)</th>
+                            <th>Дії</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${pages.map(p => `
+                            <tr>
+                                <td style="font-size: 1.5rem">${pageIcons[p.slug] || '📄'}</td>
+                                <td>
+                                    <strong>${p.title_uk}</strong><br>
+                                    <code style="font-size: 0.75rem">/${p.slug === 'home' ? '' : p.slug}</code>
+                                </td>
+                                <td style="max-width: 200px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${p.meta_title_uk || '<span style="color: var(--text-light)">Не задано</span>'}</td>
+                                <td style="max-width: 300px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap">${p.meta_description_uk || '<span style="color: var(--text-light)">Не задано</span>'}</td>
+                                <td class="actions">
+                                    <button class="btn-icon edit" onclick="openPageModal(${p.id})" title="Редагувати SEO">✏️</button>
+                                </td>
+                            </tr>
+                        `).join('')}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    } catch (error) {
+        content.innerHTML = `<div class="empty-state"><p>Помилка: ${error.message}</p></div>`;
+    }
+}
+
+async function openPageModal(id) {
+    try {
+        const page = await HAL.api.get(`/admin/pages/${id}`);
+        
+        openModal(`Редагувати SEO: ${page.title_uk}`, `
+            <form onsubmit="savePage(event, ${id})">
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Заголовок сторінки (UA)</label>
+                        <input type="text" class="form-input" name="title_uk" value="${page.title_uk || ''}">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Заголовок сторінки (RU)</label>
+                        <input type="text" class="form-input" name="title_ru" value="${page.title_ru || ''}">
+                    </div>
+                </div>
+                
+                <h4 style="margin: 1.5rem 0 1rem; color: var(--primary)">🔍 SEO налаштування</h4>
+                
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Meta Title (UA) *</label>
+                        <input type="text" class="form-input" name="meta_title_uk" value="${page.meta_title_uk || ''}" placeholder="Заголовок для пошукових систем (до 60 символів)">
+                        <small style="color: var(--text-gray)">Рекомендовано до 60 символів</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Meta Title (RU)</label>
+                        <input type="text" class="form-input" name="meta_title_ru" value="${page.meta_title_ru || ''}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Meta Description (UA) *</label>
+                        <textarea class="form-textarea" name="meta_description_uk" rows="3" placeholder="Опис для пошукових систем (до 160 символів)">${page.meta_description_uk || ''}</textarea>
+                        <small style="color: var(--text-gray)">Рекомендовано 150-160 символів</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Meta Description (RU)</label>
+                        <textarea class="form-textarea" name="meta_description_ru" rows="3">${page.meta_description_ru || ''}</textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Meta Keywords (UA)</label>
+                        <input type="text" class="form-input" name="meta_keywords_uk" value="${page.meta_keywords_uk || ''}" placeholder="ключове слово 1, ключове слово 2, ...">
+                        <small style="color: var(--text-gray)">Через кому</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Meta Keywords (RU)</label>
+                        <input type="text" class="form-input" name="meta_keywords_ru" value="${page.meta_keywords_ru || ''}">
+                    </div>
+                </div>
+                
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline" onclick="closeModal()">Скасувати</button>
+                    <button type="submit" class="btn btn-primary">Зберегти</button>
+                </div>
+            </form>
+        `, 'large');
+    } catch (error) {
+        HAL.showToast(error.message, 'error');
+    }
+}
+
+async function savePage(e, id) {
+    e.preventDefault();
+    const data = Object.fromEntries(new FormData(e.target));
+    
+    try {
+        await HAL.api.put(`/admin/pages/${id}`, data);
+        closeModal();
+        HAL.showToast('SEO налаштування збережено');
+        loadPages();
+    } catch (error) {
+        HAL.showToast(error.message, 'error');
+    }
+}
+
 function closeModal() {
     document.getElementById('modal-overlay').classList.remove('show');
     document.getElementById('modal').classList.remove('show', 'large');
