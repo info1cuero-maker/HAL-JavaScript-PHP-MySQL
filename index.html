@@ -134,12 +134,22 @@
     <script>
         // Load companies
         async function loadCompanies() {
+            const grid = document.getElementById('companies-grid');
             try {
                 const data = await HAL.api.get('/companies?limit=8&sort=recent');
-                const grid = document.getElementById('companies-grid');
-                grid.innerHTML = data.companies.map(HAL.renderCompanyCard).join('');
+                if (data && data.companies && data.companies.length > 0) {
+                    grid.innerHTML = data.companies.map(HAL.renderCompanyCard).join('');
+                } else {
+                    grid.innerHTML = '<p style="text-align: center; color: var(--text-gray); grid-column: 1 / -1;">Немає нових компаній</p>';
+                }
             } catch (error) {
                 console.error('Failed to load companies:', error);
+                grid.innerHTML = `
+                    <div style="grid-column: 1 / -1; padding: 2rem; text-align: center;">
+                        <p style="color: var(--text-gray)">⚠️ Не вдалося завантажити компанії</p>
+                        <button class="btn btn-outline btn-sm" onclick="loadCompanies()" style="margin-top: 0.5rem">Спробувати знову</button>
+                    </div>
+                `;
             }
         }
 
