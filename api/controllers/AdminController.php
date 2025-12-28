@@ -149,7 +149,9 @@ class AdminController {
         $fields = [];
         $params = [];
         
-        foreach (['slug', 'name_uk', 'name_ru', 'description_uk', 'description_ru', 'icon', 'sort_order', 'is_active', 'parent_id'] as $field) {
+        $allowedFields = ['slug', 'name_uk', 'name_ru', 'description_uk', 'description_ru', 'icon', 'sort_order', 'is_active', 'parent_id', 'meta_title_uk', 'meta_title_ru', 'meta_description_uk', 'meta_description_ru', 'meta_keywords_uk', 'meta_keywords_ru'];
+        
+        foreach ($allowedFields as $field) {
             if (isset($data[$field])) {
                 $fields[] = "$field = ?";
                 $params[] = $data[$field];
