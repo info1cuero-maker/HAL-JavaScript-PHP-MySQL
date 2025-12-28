@@ -519,8 +519,8 @@ class AdminController {
         $data = Response::getJsonBody();
         
         $stmt = $this->db->prepare("
-            INSERT INTO blog_categories (slug, name_uk, name_ru, description_uk, description_ru, sort_order, parent_id)
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO blog_categories (slug, name_uk, name_ru, description_uk, description_ru, sort_order, parent_id, meta_title_uk, meta_title_ru, meta_description_uk, meta_description_ru, meta_keywords_uk, meta_keywords_ru)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data['slug'],
@@ -529,7 +529,13 @@ class AdminController {
             $data['description_uk'] ?? null,
             $data['description_ru'] ?? null,
             $data['sort_order'] ?? 0,
-            $data['parent_id'] ?? null
+            $data['parent_id'] ?? null,
+            $data['meta_title_uk'] ?? null,
+            $data['meta_title_ru'] ?? null,
+            $data['meta_description_uk'] ?? null,
+            $data['meta_description_ru'] ?? null,
+            $data['meta_keywords_uk'] ?? null,
+            $data['meta_keywords_ru'] ?? null
         ]);
         
         $id = $this->db->lastInsertId();
@@ -548,7 +554,9 @@ class AdminController {
         $fields = [];
         $params = [];
         
-        foreach (['slug', 'name_uk', 'name_ru', 'description_uk', 'description_ru', 'sort_order', 'is_active', 'parent_id'] as $field) {
+        $allowedFields = ['slug', 'name_uk', 'name_ru', 'description_uk', 'description_ru', 'sort_order', 'is_active', 'parent_id', 'meta_title_uk', 'meta_title_ru', 'meta_description_uk', 'meta_description_ru', 'meta_keywords_uk', 'meta_keywords_ru'];
+        
+        foreach ($allowedFields as $field) {
             if (isset($data[$field])) {
                 $fields[] = "$field = ?";
                 $params[] = $data[$field];
