@@ -58,6 +58,10 @@ $routes = [
     // User Dashboard
     'GET users/me/dashboard' => 'controllers/UserController.php@dashboard',
     'GET users/me/companies' => 'controllers/UserController.php@myCompanies',
+    'GET users/me/companies/(\d+)' => 'controllers/UserController.php@getMyCompany',
+    'PUT users/me/companies/(\d+)' => 'controllers/UserController.php@updateMyCompany',
+    'POST users/me/companies/(\d+)/images' => 'controllers/UserController.php@uploadMyCompanyImage',
+    'DELETE users/me/images/(\d+)' => 'controllers/UserController.php@deleteMyCompanyImage',
     'PUT users/me' => 'controllers/UserController.php@updateProfile',
     
     // Contact
