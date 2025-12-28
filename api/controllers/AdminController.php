@@ -329,7 +329,7 @@ class AdminController {
         $user = $this->requireAdminAccess(false);
         $data = Response::getJsonBody();
         
-        $allowedFields = ['name', 'name_ru', 'description', 'description_ru', 'category_id', 'city', 'address', 'lat', 'lng', 'phone', 'email', 'website', 'is_active', 'is_featured', 'is_new'];
+        $allowedFields = ['name', 'name_ru', 'description', 'description_ru', 'category_id', 'city', 'address', 'lat', 'lng', 'phone', 'email', 'website', 'is_active', 'is_featured', 'is_new', 'meta_title_uk', 'meta_title_ru', 'meta_description_uk', 'meta_description_ru', 'meta_keywords_uk', 'meta_keywords_ru'];
         
         $fields = [];
         $params = [];
