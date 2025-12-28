@@ -212,7 +212,7 @@ async function loadCategories() {
                             <th>Іконка</th>
                             <th>Slug</th>
                             <th>Назва (UA)</th>
-                            <th>Назва (RU)</th>
+                            <th>Батьківська</th>
                             <th>Компаній</th>
                             <th>Статус</th>
                             <th>Дії</th>
@@ -220,11 +220,11 @@ async function loadCategories() {
                     </thead>
                     <tbody>
                         ${categories.map(cat => `
-                            <tr>
+                            <tr style="${cat.parent_id ? 'background: #f8fafc' : ''}">
                                 <td>${getIconEmoji(cat.icon)}</td>
-                                <td><code>${cat.slug}</code></td>
-                                <td>${cat.name_uk}</td>
-                                <td>${cat.name_ru}</td>
+                                <td><code>${cat.parent_id ? '↳ ' : ''}${cat.slug}</code></td>
+                                <td>${cat.parent_id ? '<span style="color: var(--text-light)">└─</span> ' : ''}${cat.name_uk}</td>
+                                <td>${cat.parent_name || '—'}</td>
                                 <td>${cat.companies_count}</td>
                                 <td><span class="status-badge ${cat.is_active ? 'active' : 'inactive'}">${cat.is_active ? 'Активна' : 'Неактивна'}</span></td>
                                 <td class="actions">
