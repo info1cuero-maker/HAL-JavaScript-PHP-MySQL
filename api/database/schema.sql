@@ -71,9 +71,10 @@ CREATE TABLE IF NOT EXISTS cities (
     is_active BOOLEAN DEFAULT TRUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
--- Blog categories
+-- Blog categories with parent support
 CREATE TABLE IF NOT EXISTS blog_categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_id INT DEFAULT NULL,
     slug VARCHAR(50) UNIQUE NOT NULL,
     name_uk VARCHAR(255) NOT NULL,
     name_ru VARCHAR(255) NOT NULL,
@@ -83,7 +84,9 @@ CREATE TABLE IF NOT EXISTS blog_categories (
     is_active BOOLEAN DEFAULT TRUE,
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
-    INDEX idx_slug (slug)
+    INDEX idx_slug (slug),
+    INDEX idx_parent_id (parent_id),
+    FOREIGN KEY (parent_id) REFERENCES blog_categories(id) ON DELETE SET NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- ==================== COMPANIES ====================
