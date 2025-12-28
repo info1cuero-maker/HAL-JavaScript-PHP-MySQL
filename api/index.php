@@ -62,6 +62,7 @@ $routes = [
     'PUT users/me/companies/(\d+)' => 'controllers/UserController.php@updateMyCompany',
     'POST users/me/companies/(\d+)/images' => 'controllers/UserController.php@uploadMyCompanyImage',
     'DELETE users/me/images/(\d+)' => 'controllers/UserController.php@deleteMyCompanyImage',
+    'GET users/me/reviews' => 'controllers/UserController.php@myReviews',
     'PUT users/me' => 'controllers/UserController.php@updateProfile',
     
     // Contact
