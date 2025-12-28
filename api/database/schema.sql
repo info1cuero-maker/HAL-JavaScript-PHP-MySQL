@@ -39,9 +39,10 @@ CREATE TABLE IF NOT EXISTS admin_logs (
 
 -- ==================== CATEGORIES ====================
 
--- Company categories
+-- Company categories with parent support
 CREATE TABLE IF NOT EXISTS categories (
     id INT AUTO_INCREMENT PRIMARY KEY,
+    parent_id INT DEFAULT NULL,
     slug VARCHAR(50) UNIQUE NOT NULL,
     name_uk VARCHAR(255) NOT NULL,
     name_ru VARCHAR(255) NOT NULL,
@@ -53,7 +54,21 @@ CREATE TABLE IF NOT EXISTS categories (
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     INDEX idx_slug (slug),
-    INDEX idx_sort_order (sort_order)
+    INDEX idx_parent_id (parent_id),
+    INDEX idx_sort_order (sort_order),
+    FOREIGN KEY (parent_id) REFERENCES categories(id) ON DELETE SET NULL
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- Cities table
+CREATE TABLE IF NOT EXISTS cities (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(50) UNIQUE NOT NULL,
+    name_uk VARCHAR(100) NOT NULL,
+    name_ru VARCHAR(100) NOT NULL,
+    region_uk VARCHAR(100),
+    region_ru VARCHAR(100),
+    sort_order INT DEFAULT 0,
+    is_active BOOLEAN DEFAULT TRUE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
 -- Blog categories
