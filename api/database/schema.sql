@@ -237,6 +237,29 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     INDEX idx_slug (slug)
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 
+-- ==================== STATIC PAGES ====================
+
+-- Static pages (home, about, contacts, search, blog index, etc.)
+CREATE TABLE IF NOT EXISTS pages (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    slug VARCHAR(100) UNIQUE NOT NULL,
+    title_uk VARCHAR(255) NOT NULL,
+    title_ru VARCHAR(255) NOT NULL,
+    content_uk LONGTEXT,
+    content_ru LONGTEXT,
+    -- SEO fields
+    meta_title_uk VARCHAR(255),
+    meta_title_ru VARCHAR(255),
+    meta_description_uk TEXT,
+    meta_description_ru TEXT,
+    meta_keywords_uk VARCHAR(500),
+    meta_keywords_ru VARCHAR(500),
+    is_active BOOLEAN DEFAULT TRUE,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    INDEX idx_slug (slug)
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
 -- ==================== SITE SETTINGS ====================
 
 -- Site settings
