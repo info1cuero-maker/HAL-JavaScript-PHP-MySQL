@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="assets/css/style.css">
     <style>
         .add-form-container {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto;
         }
         .add-form {
@@ -27,6 +27,176 @@
                 grid-template-columns: 1fr;
             }
         }
+        .form-section {
+            margin-bottom: 2rem;
+            padding-bottom: 2rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .form-section:last-child {
+            border-bottom: none;
+            margin-bottom: 0;
+        }
+        .section-title-small {
+            font-size: 1.125rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .required-note {
+            color: var(--text-gray);
+            font-size: 0.875rem;
+            margin-bottom: 1.5rem;
+        }
+        .required-note span {
+            color: #ef4444;
+        }
+        /* Image upload styles */
+        .image-upload-area {
+            border: 2px dashed var(--border);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            cursor: pointer;
+            transition: all 0.2s;
+            margin-bottom: 1rem;
+        }
+        .image-upload-area:hover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.05);
+        }
+        .image-upload-area.dragover {
+            border-color: var(--primary);
+            background: rgba(59, 130, 246, 0.1);
+        }
+        .image-upload-icon {
+            font-size: 3rem;
+            margin-bottom: 0.5rem;
+        }
+        .image-upload-text {
+            color: var(--text-gray);
+            margin-bottom: 0.5rem;
+        }
+        .image-upload-hint {
+            color: var(--text-light);
+            font-size: 0.75rem;
+        }
+        .uploaded-images {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 0.75rem;
+            margin-top: 1rem;
+        }
+        @media (max-width: 768px) {
+            .uploaded-images {
+                grid-template-columns: repeat(3, 1fr);
+            }
+        }
+        .uploaded-image {
+            position: relative;
+            aspect-ratio: 1;
+            border-radius: var(--radius);
+            overflow: hidden;
+        }
+        .uploaded-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .uploaded-image .remove-btn {
+            position: absolute;
+            top: 4px;
+            right: 4px;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #ef4444;
+            color: white;
+            border: none;
+            cursor: pointer;
+            font-size: 1rem;
+            line-height: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .uploaded-image.main::after {
+            content: '★ Головне';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+            font-size: 0.625rem;
+            padding: 0.25rem;
+            text-align: center;
+        }
+        .images-count {
+            text-align: right;
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+        /* SEO section */
+        .seo-section {
+            background: #f0f9ff;
+            border-radius: var(--radius);
+            padding: 1.5rem;
+        }
+        .seo-preview {
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 1rem;
+            margin-top: 1rem;
+        }
+        .seo-preview-title {
+            color: #1a0dab;
+            font-size: 1.125rem;
+            margin-bottom: 0.25rem;
+        }
+        .seo-preview-url {
+            color: #006621;
+            font-size: 0.875rem;
+            margin-bottom: 0.25rem;
+        }
+        .seo-preview-desc {
+            color: #545454;
+            font-size: 0.875rem;
+        }
+        .char-counter {
+            font-size: 0.75rem;
+            color: var(--text-light);
+            text-align: right;
+            margin-top: 0.25rem;
+        }
+        .char-counter.warning {
+            color: #f59e0b;
+        }
+        .char-counter.error {
+            color: #ef4444;
+        }
+        /* Auth required notice */
+        .auth-required {
+            background: linear-gradient(135deg, #fef3c7, #fde68a);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+        .auth-required h2 {
+            margin-bottom: 1rem;
+        }
+        .auth-required p {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+        .auth-buttons {
+            display: flex;
+            gap: 1rem;
+            justify-content: center;
+        }
     </style>
 </head>
 <body>
@@ -44,7 +214,7 @@
                     <button class="lang-btn active" data-lang="uk">UA</button>
                     <button class="lang-btn" data-lang="ru">RU</button>
                 </div>
-                <div class="auth-links">
+                <div class="auth-links" id="auth-links">
                     <a href="/login" class="btn btn-outline">Увійти</a>
                 </div>
             </div>
@@ -55,70 +225,161 @@
         <div class="container add-form-container">
             <h1 class="section-title mb-4">Додати компанію</h1>
             
-            <div class="add-form">
+            <!-- Auth Required Notice -->
+            <div class="auth-required" id="auth-required" style="display: none;">
+                <h2>🔐 Для додавання компанії потрібна реєстрація</h2>
+                <p>Зареєструйтеся або увійдіть, щоб додати свою компанію до каталогу HAL</p>
+                <div class="auth-buttons">
+                    <a href="/login?redirect=/add-business" class="btn btn-outline">Увійти</a>
+                    <a href="/register?redirect=/add-business" class="btn btn-primary">Зареєструватися</a>
+                </div>
+            </div>
+            
+            <!-- Add Company Form -->
+            <div class="add-form" id="add-form" style="display: none;">
+                <p class="required-note">Поля позначені <span>*</span> обов'язкові для заповнення</p>
+                
                 <form id="add-company-form">
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Назва (українською) *</label>
-                            <input type="text" class="form-input" id="name" required>
+                    <!-- Basic Info -->
+                    <div class="form-section">
+                        <div class="section-title-small">📝 Основна інформація</div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Назва компанії (UA) <span style="color:#ef4444">*</span></label>
+                                <input type="text" class="form-input" name="name" id="name" required maxlength="255">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Назва компанії (RU) <span style="color:#ef4444">*</span></label>
+                                <input type="text" class="form-input" name="name_ru" id="name_ru" required maxlength="255">
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label class="form-label">Назва (російською) *</label>
-                            <input type="text" class="form-input" id="name_ru" required>
+                            <label class="form-label">Опис (UA) <span style="color:#ef4444">*</span></label>
+                            <textarea class="form-textarea" name="description" id="description" rows="4" required maxlength="5000" placeholder="Розкажіть про вашу компанію, послуги та переваги..."></textarea>
                         </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Опис (українською) *</label>
-                        <textarea class="form-textarea" id="description" rows="4" required></textarea>
-                    </div>
-
-                    <div class="form-group">
-                        <label class="form-label">Опис (російською) *</label>
-                        <textarea class="form-textarea" id="description_ru" rows="4" required></textarea>
-                    </div>
-
-                    <div class="form-row">
                         <div class="form-group">
-                            <label class="form-label">Категорія *</label>
-                            <select class="filter-select" id="category" required style="width: 100%">
-                                <option value="">Оберіть категорію</option>
-                            </select>
+                            <label class="form-label">Опис (RU) <span style="color:#ef4444">*</span></label>
+                            <textarea class="form-textarea" name="description_ru" id="description_ru" rows="4" required maxlength="5000"></textarea>
                         </div>
-                        <div class="form-group">
-                            <label class="form-label">Місто *</label>
-                            <input type="text" class="form-input" id="city" value="Kyiv" required>
-                        </div>
-                    </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Адреса *</label>
-                        <input type="text" class="form-input" id="address" required>
-                    </div>
-
-                    <div class="form-row">
-                        <div class="form-group">
-                            <label class="form-label">Телефон *</label>
-                            <input type="tel" class="form-input" id="phone" placeholder="+380 44 123 4567" required>
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Категорія <span style="color:#ef4444">*</span></label>
+                                <select class="form-input" name="category_id" id="category_id" required>
+                                    <option value="">Оберіть категорію</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Місто <span style="color:#ef4444">*</span></label>
+                                <input type="text" class="form-input" name="city" id="city" value="Київ" required>
+                            </div>
                         </div>
+
                         <div class="form-group">
-                            <label class="form-label">Email *</label>
-                            <input type="email" class="form-input" id="email" required>
+                            <label class="form-label">Адреса <span style="color:#ef4444">*</span></label>
+                            <input type="text" class="form-input" name="address" id="address" required placeholder="вул. Хрещатик, 1">
                         </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Веб-сайт</label>
-                        <input type="url" class="form-input" id="website" placeholder="https://">
+                    <!-- Contact Info -->
+                    <div class="form-section">
+                        <div class="section-title-small">📞 Контактна інформація</div>
+                        
+                        <div class="form-row">
+                            <div class="form-group">
+                                <label class="form-label">Телефон <span style="color:#ef4444">*</span></label>
+                                <input type="tel" class="form-input" name="phone" id="phone" required placeholder="+380 44 123 4567">
+                            </div>
+                            <div class="form-group">
+                                <label class="form-label">Email <span style="color:#ef4444">*</span></label>
+                                <input type="email" class="form-input" name="email" id="email" required placeholder="info@company.com">
+                            </div>
+                        </div>
+
+                        <div class="form-group">
+                            <label class="form-label">Веб-сайт</label>
+                            <input type="url" class="form-input" name="website" id="website" placeholder="https://yourcompany.com">
+                        </div>
                     </div>
 
-                    <div class="form-group">
-                        <label class="form-label">Головне зображення (URL) *</label>
-                        <input type="url" class="form-input" id="image" placeholder="https://example.com/image.jpg" required>
+                    <!-- Images -->
+                    <div class="form-section">
+                        <div class="section-title-small">🖼️ Зображення компанії <span style="color:#ef4444">*</span></div>
+                        <p style="color: var(--text-gray); font-size: 0.875rem; margin-bottom: 1rem;">
+                            Завантажте до 10 фотографій вашої компанії. <strong>Тільки формат WebP!</strong>
+                        </p>
+                        
+                        <div class="image-upload-area" id="image-upload-area">
+                            <input type="file" id="image-input" accept=".webp,image/webp" multiple style="display: none;">
+                            <div class="image-upload-icon">📷</div>
+                            <div class="image-upload-text">Натисніть або перетягніть файли сюди</div>
+                            <div class="image-upload-hint">Тільки WebP формат • Максимум 10 файлів • До 5 МБ кожен</div>
+                        </div>
+                        
+                        <div class="uploaded-images" id="uploaded-images"></div>
+                        <div class="images-count" id="images-count"></div>
                     </div>
 
-                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%">
-                        Додати компанію
+                    <!-- SEO Section -->
+                    <div class="form-section">
+                        <div class="section-title-small">🔍 SEO налаштування <span style="color:#ef4444">*</span></div>
+                        <p style="color: var(--text-gray); font-size: 0.875rem; margin-bottom: 1rem;">
+                            Ці поля допоможуть вашій компанії краще індексуватися в пошукових системах (Google, Bing тощо)
+                        </p>
+                        
+                        <div class="seo-section">
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">SEO Заголовок (UA) <span style="color:#ef4444">*</span></label>
+                                    <input type="text" class="form-input" name="meta_title_uk" id="meta_title_uk" required maxlength="70" placeholder="Назва компанії - послуги в місті">
+                                    <div class="char-counter" id="meta_title_uk_counter">0 / 60 символів</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">SEO Заголовок (RU) <span style="color:#ef4444">*</span></label>
+                                    <input type="text" class="form-input" name="meta_title_ru" id="meta_title_ru" required maxlength="70">
+                                    <div class="char-counter" id="meta_title_ru_counter">0 / 60 символів</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">SEO Опис (UA) <span style="color:#ef4444">*</span></label>
+                                    <textarea class="form-textarea" name="meta_description_uk" id="meta_description_uk" rows="2" required maxlength="170" placeholder="Короткий опис вашої компанії для пошукових систем..."></textarea>
+                                    <div class="char-counter" id="meta_description_uk_counter">0 / 160 символів</div>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">SEO Опис (RU) <span style="color:#ef4444">*</span></label>
+                                    <textarea class="form-textarea" name="meta_description_ru" id="meta_description_ru" rows="2" required maxlength="170"></textarea>
+                                    <div class="char-counter" id="meta_description_ru_counter">0 / 160 символів</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Ключові слова (UA) <span style="color:#ef4444">*</span></label>
+                                    <input type="text" class="form-input" name="meta_keywords_uk" id="meta_keywords_uk" required maxlength="255" placeholder="послуги, компанія, місто, категорія">
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Ключові слова (RU) <span style="color:#ef4444">*</span></label>
+                                    <input type="text" class="form-input" name="meta_keywords_ru" id="meta_keywords_ru" required maxlength="255">
+                                </div>
+                            </div>
+                            
+                            <!-- SEO Preview -->
+                            <div class="seo-preview">
+                                <div style="font-size: 0.75rem; color: var(--text-light); margin-bottom: 0.5rem;">Попередній перегляд в Google:</div>
+                                <div class="seo-preview-title" id="seo-preview-title">Назва вашої компанії - HAL</div>
+                                <div class="seo-preview-url">hal.in.ua › company › <span id="seo-preview-url">your-company</span></div>
+                                <div class="seo-preview-desc" id="seo-preview-desc">Опис вашої компанії з'явиться тут...</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary btn-lg" style="width: 100%" id="submit-btn">
+                        ✓ Додати компанію
                     </button>
                 </form>
             </div>
@@ -127,21 +388,34 @@
 
     <script src="assets/js/app.js"></script>
     <script>
+        // State
+        let uploadedImages = [];
+        
         // Check auth
-        if (!HAL.state.user) {
-            window.location.href = '/login?redirect=/add-business';
+        function checkAuth() {
+            if (!HAL.state.user) {
+                document.getElementById('auth-required').style.display = 'block';
+                document.getElementById('add-form').style.display = 'none';
+            } else {
+                document.getElementById('auth-required').style.display = 'none';
+                document.getElementById('add-form').style.display = 'block';
+                document.getElementById('auth-links').innerHTML = `
+                    <a href="/dashboard" class="btn btn-outline">Кабінет</a>
+                `;
+            }
         }
 
         // Load categories
         async function loadCategories() {
             try {
-                const categories = await HAL.api.get('/categories');
-                const select = document.getElementById('category');
+                const categories = await HAL.api.get('/categories?flat=true');
+                const select = document.getElementById('category_id');
                 categories.forEach(cat => {
                     const name = HAL.state.language === 'uk' ? cat.nameUk : cat.nameRu;
+                    const prefix = cat.parent_id ? '— ' : '';
                     const option = document.createElement('option');
                     option.value = cat.id;
-                    option.textContent = name;
+                    option.textContent = prefix + name;
                     select.appendChild(option);
                 });
             } catch (error) {
@@ -149,35 +423,221 @@
             }
         }
 
+        // Image upload handling
+        const imageUploadArea = document.getElementById('image-upload-area');
+        const imageInput = document.getElementById('image-input');
+
+        imageUploadArea.addEventListener('click', () => imageInput.click());
+        
+        imageUploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            imageUploadArea.classList.add('dragover');
+        });
+        
+        imageUploadArea.addEventListener('dragleave', () => {
+            imageUploadArea.classList.remove('dragover');
+        });
+        
+        imageUploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            imageUploadArea.classList.remove('dragover');
+            handleFiles(e.dataTransfer.files);
+        });
+
+        imageInput.addEventListener('change', (e) => {
+            handleFiles(e.target.files);
+        });
+
+        function handleFiles(files) {
+            const maxFiles = 10 - uploadedImages.length;
+            const validFiles = Array.from(files).slice(0, maxFiles);
+            
+            validFiles.forEach(file => {
+                // Check format
+                if (!file.name.toLowerCase().endsWith('.webp') && file.type !== 'image/webp') {
+                    HAL.showToast(`${file.name}: тільки WebP формат!`, 'error');
+                    return;
+                }
+                
+                // Check size (5MB)
+                if (file.size > 5 * 1024 * 1024) {
+                    HAL.showToast(`${file.name}: файл занадто великий (макс. 5МБ)`, 'error');
+                    return;
+                }
+                
+                // Add to list
+                const reader = new FileReader();
+                reader.onload = (e) => {
+                    uploadedImages.push({
+                        file: file,
+                        preview: e.target.result,
+                        isMain: uploadedImages.length === 0
+                    });
+                    renderImages();
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function renderImages() {
+            const container = document.getElementById('uploaded-images');
+            const counter = document.getElementById('images-count');
+            
+            if (uploadedImages.length === 0) {
+                container.innerHTML = '';
+                counter.textContent = '';
+                return;
+            }
+            
+            container.innerHTML = uploadedImages.map((img, index) => `
+                <div class="uploaded-image ${img.isMain ? 'main' : ''}">
+                    <img src="${img.preview}" alt="Фото ${index + 1}">
+                    <button type="button" class="remove-btn" onclick="removeImage(${index})">×</button>
+                </div>
+            `).join('');
+            
+            counter.textContent = `${uploadedImages.length} / 10 зображень`;
+        }
+
+        function removeImage(index) {
+            const wasMain = uploadedImages[index].isMain;
+            uploadedImages.splice(index, 1);
+            
+            // Set first as main if removed was main
+            if (wasMain && uploadedImages.length > 0) {
+                uploadedImages[0].isMain = true;
+            }
+            
+            renderImages();
+        }
+
+        // SEO character counters
+        function setupCharCounter(inputId, counterId, max) {
+            const input = document.getElementById(inputId);
+            const counter = document.getElementById(counterId);
+            
+            input.addEventListener('input', () => {
+                const len = input.value.length;
+                counter.textContent = `${len} / ${max} символів`;
+                counter.className = 'char-counter';
+                if (len > max) {
+                    counter.classList.add('error');
+                } else if (len > max * 0.9) {
+                    counter.classList.add('warning');
+                }
+                
+                // Update preview
+                updateSeoPreview();
+            });
+        }
+
+        setupCharCounter('meta_title_uk', 'meta_title_uk_counter', 60);
+        setupCharCounter('meta_title_ru', 'meta_title_ru_counter', 60);
+        setupCharCounter('meta_description_uk', 'meta_description_uk_counter', 160);
+        setupCharCounter('meta_description_ru', 'meta_description_ru_counter', 160);
+
+        function updateSeoPreview() {
+            const lang = HAL.state.language;
+            const title = document.getElementById(lang === 'uk' ? 'meta_title_uk' : 'meta_title_ru').value || 'Назва вашої компанії';
+            const desc = document.getElementById(lang === 'uk' ? 'meta_description_uk' : 'meta_description_ru').value || 'Опис вашої компанії з\'явиться тут...';
+            const name = document.getElementById('name').value;
+            
+            document.getElementById('seo-preview-title').textContent = title + ' - HAL';
+            document.getElementById('seo-preview-desc').textContent = desc;
+            document.getElementById('seo-preview-url').textContent = name ? name.toLowerCase().replace(/\s+/g, '-').substring(0, 30) : 'your-company';
+        }
+
+        // Auto-fill SEO from name
+        document.getElementById('name').addEventListener('blur', () => {
+            const name = document.getElementById('name').value;
+            const city = document.getElementById('city').value;
+            
+            if (name && !document.getElementById('meta_title_uk').value) {
+                document.getElementById('meta_title_uk').value = `${name} - послуги в ${city}`;
+                document.getElementById('meta_title_uk').dispatchEvent(new Event('input'));
+            }
+        });
+
+        document.getElementById('name_ru').addEventListener('blur', () => {
+            const name = document.getElementById('name_ru').value;
+            const city = document.getElementById('city').value;
+            
+            if (name && !document.getElementById('meta_title_ru').value) {
+                document.getElementById('meta_title_ru').value = `${name} - услуги в ${city}`;
+                document.getElementById('meta_title_ru').dispatchEvent(new Event('input'));
+            }
+        });
+
+        document.getElementById('description').addEventListener('blur', () => {
+            const desc = document.getElementById('description').value;
+            if (desc && !document.getElementById('meta_description_uk').value) {
+                document.getElementById('meta_description_uk').value = desc.substring(0, 155) + (desc.length > 155 ? '...' : '');
+                document.getElementById('meta_description_uk').dispatchEvent(new Event('input'));
+            }
+        });
+
+        document.getElementById('description_ru').addEventListener('blur', () => {
+            const desc = document.getElementById('description_ru').value;
+            if (desc && !document.getElementById('meta_description_ru').value) {
+                document.getElementById('meta_description_ru').value = desc.substring(0, 155) + (desc.length > 155 ? '...' : '');
+                document.getElementById('meta_description_ru').dispatchEvent(new Event('input'));
+            }
+        });
+
         // Submit form
         document.getElementById('add-company-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             
-            const data = {
-                name: document.getElementById('name').value,
-                name_ru: document.getElementById('name_ru').value,
-                description: document.getElementById('description').value,
-                description_ru: document.getElementById('description_ru').value,
-                category: document.getElementById('category').value,
-                city: document.getElementById('city').value,
-                address: document.getElementById('address').value,
-                phone: document.getElementById('phone').value,
-                email: document.getElementById('email').value,
-                website: document.getElementById('website').value,
-                image: document.getElementById('image').value
-            };
-
+            // Validate images
+            if (uploadedImages.length === 0) {
+                HAL.showToast('Додайте хоча б одне зображення компанії', 'error');
+                return;
+            }
+            
+            const submitBtn = document.getElementById('submit-btn');
+            submitBtn.disabled = true;
+            submitBtn.textContent = 'Збереження...';
+            
             try {
-                const result = await HAL.api.post('/companies', data);
+                // Prepare company data
+                const formData = new FormData(e.target);
+                const companyData = {};
+                formData.forEach((value, key) => {
+                    companyData[key] = value;
+                });
+                
+                // Create company
+                const result = await HAL.api.post('/companies', companyData);
+                const companyId = result.id;
+                
+                // Upload images
+                for (let i = 0; i < uploadedImages.length; i++) {
+                    submitBtn.textContent = `Завантаження фото ${i + 1}/${uploadedImages.length}...`;
+                    
+                    const imageFormData = new FormData();
+                    imageFormData.append('image', uploadedImages[i].file);
+                    
+                    await fetch(`/api/users/me/companies/${companyId}/images`, {
+                        method: 'POST',
+                        headers: { 'Authorization': `Bearer ${HAL.state.token}` },
+                        body: imageFormData
+                    });
+                }
+                
                 HAL.showToast('Компанію успішно додано!', 'success');
                 setTimeout(() => {
-                    window.location.href = `/company/${result.id}`;
+                    window.location.href = `/company/${companyId}`;
                 }, 1000);
+                
             } catch (error) {
-                HAL.showToast('Помилка додавання компанії', 'error');
+                HAL.showToast(error.message || 'Помилка додавання компанії', 'error');
+                submitBtn.disabled = false;
+                submitBtn.textContent = '✓ Додати компанію';
             }
         });
 
+        // Initialize
+        checkAuth();
         loadCategories();
     </script>
 </body>
