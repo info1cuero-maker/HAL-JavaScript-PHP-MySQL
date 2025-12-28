@@ -241,7 +241,10 @@
                                     👁 ${c.totalViews} переглядів | ⭐ ${c.averageRating} рейтинг | 💬 ${c.totalReviews} відгуків
                                 </div>
                             </div>
-                            <a href="/company/${c.companyId}" class="btn btn-outline">Переглянути</a>
+                            <div style="display: flex; gap: 0.5rem">
+                                <button class="btn btn-outline" onclick="openEditCompanyModal(${c.companyId})">✏️ Редагувати</button>
+                                <a href="/company/${c.companyId}" class="btn btn-outline" target="_blank">👁 Переглянути</a>
+                            </div>
                         </div>
                     `).join('');
                 } else {
