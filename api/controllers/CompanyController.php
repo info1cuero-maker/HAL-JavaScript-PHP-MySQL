@@ -180,7 +180,7 @@ class CompanyController {
         $data = Response::getJsonBody();
         
         // Validate required fields
-        $required = ['name', 'name_ru', 'description', 'description_ru', 'city', 'address', 'phone', 'email'];
+        $required = ['name', 'name_ru', 'description', 'description_ru', 'city', 'address', 'phone', 'email', 'meta_title_uk', 'meta_description_uk', 'meta_keywords_uk'];
         foreach ($required as $field) {
             if (empty($data[$field])) {
                 Response::error("Field '$field' is required", 400);
@@ -189,8 +189,8 @@ class CompanyController {
         
         $sql = "
             INSERT INTO companies 
-            (name, name_ru, description, description_ru, category_id, city, address, lat, lng, phone, email, website, user_id, is_new)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+            (name, name_ru, description, description_ru, category_id, city, address, lat, lng, phone, email, website, user_id, is_new, meta_title_uk, meta_title_ru, meta_description_uk, meta_description_ru, meta_keywords_uk, meta_keywords_ru)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1, ?, ?, ?, ?, ?, ?)
         ";
         
         $stmt = $this->db->prepare($sql);
@@ -207,7 +207,13 @@ class CompanyController {
             $data['phone'],
             $data['email'],
             $data['website'] ?? null,
-            $user['id']
+            $user['id'],
+            $data['meta_title_uk'] ?? null,
+            $data['meta_title_ru'] ?? null,
+            $data['meta_description_uk'] ?? null,
+            $data['meta_description_ru'] ?? null,
+            $data['meta_keywords_uk'] ?? null,
+            $data['meta_keywords_ru'] ?? null
         ]);
         
         $company_id = $this->db->lastInsertId();
