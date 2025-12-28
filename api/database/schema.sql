@@ -220,6 +220,13 @@ CREATE TABLE IF NOT EXISTS blog_posts (
     status ENUM('draft', 'published', 'archived') DEFAULT 'draft',
     views_count INT DEFAULT 0,
     published_at TIMESTAMP NULL,
+    -- SEO fields
+    meta_title_uk VARCHAR(255),
+    meta_title_ru VARCHAR(255),
+    meta_description_uk TEXT,
+    meta_description_ru TEXT,
+    meta_keywords_uk VARCHAR(500),
+    meta_keywords_ru VARCHAR(500),
     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
     FOREIGN KEY (category_id) REFERENCES blog_categories(id) ON DELETE SET NULL,
