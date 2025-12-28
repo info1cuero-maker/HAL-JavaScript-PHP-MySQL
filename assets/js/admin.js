@@ -644,7 +644,7 @@ async function loadBlogCategories() {
                         <tr>
                             <th>Slug</th>
                             <th>Назва (UA)</th>
-                            <th>Назва (RU)</th>
+                            <th>Батьківська</th>
                             <th>Статей</th>
                             <th>Статус</th>
                             <th>Дії</th>
@@ -652,15 +652,15 @@ async function loadBlogCategories() {
                     </thead>
                     <tbody>
                         ${categories.map(cat => `
-                            <tr>
-                                <td><code>${cat.slug}</code></td>
-                                <td>${cat.name_uk}</td>
-                                <td>${cat.name_ru}</td>
+                            <tr style="${cat.parent_id ? 'background: #f8fafc' : ''}">
+                                <td><code>${cat.parent_id ? '↳ ' : ''}${cat.slug}</code></td>
+                                <td>${cat.parent_id ? '<span style="color: var(--text-light)">└─</span> ' : ''}${cat.name_uk}</td>
+                                <td>${cat.parent_name || '—'}</td>
                                 <td>${cat.posts_count}</td>
                                 <td><span class="status-badge ${cat.is_active ? 'active' : 'inactive'}">${cat.is_active ? 'Активна' : 'Неактивна'}</span></td>
                                 <td class="actions">
                                     <button class="btn-icon edit" onclick="openBlogCategoryModal(${cat.id})" title="Редагувати">✏️</button>
-                                    ${!adminState.isAnalyst ? `<button class="btn-icon delete" onclick="deleteBlogCategory(${cat.id})" title="Видалити">🗑️</button>` : ''}
+                                    ${!adminState.isAnalyst && cat.posts_count == 0 ? `<button class="btn-icon delete" onclick="deleteBlogCategory(${cat.id})" title="Видалити">🗑️</button>` : ''}
                                 </td>
                             </tr>
                         `).join('')}
@@ -676,6 +676,12 @@ async function loadBlogCategories() {
 function openBlogCategoryModal(id = null) {
     const cat = id ? adminState.blogCategories.find(c => c.id === id) : null;
     
+    // Get parent categories for dropdown
+    const parentOptions = adminState.blogCategories
+        .filter(c => !c.parent_id && c.id !== id)
+        .map(c => `<option value="${c.id}" ${cat?.parent_id == c.id ? 'selected' : ''}>${c.name_uk}</option>`)
+        .join('');
+    
     openModal(cat ? 'Редагувати категорію' : 'Нова категорія', `
         <form onsubmit="saveBlogCategory(event, ${id || 'null'})">
             <div class="form-row">
@@ -688,6 +694,13 @@ function openBlogCategoryModal(id = null) {
                     <input type="number" class="form-input" name="sort_order" value="${cat?.sort_order || 0}">
                 </div>
             </div>
+            <div class="form-group">
+                <label class="form-label">Батьківська категорія</label>
+                <select class="form-input" name="parent_id">
+                    <option value="">-- Немає (коренева) --</option>
+                    ${parentOptions}
+                </select>
+            </div>
             <div class="form-row">
                 <div class="form-group">
                     <label class="form-label">Назва (UA) *</label>
@@ -697,6 +710,23 @@ function openBlogCategoryModal(id = null) {
                     <label class="form-label">Назва (RU) *</label>
                     <input type="text" class="form-input" name="name_ru" value="${cat?.name_ru || ''}" required>
                 </div>
+            </div>
+            <div class="form-row">
+                <div class="form-group">
+                    <label class="form-label">Опис (UA)</label>
+                    <textarea class="form-textarea" name="description_uk" rows="2">${cat?.description_uk || ''}</textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Опис (RU)</label>
+                    <textarea class="form-textarea" name="description_ru" rows="2">${cat?.description_ru || ''}</textarea>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Статус</label>
+                <select class="form-input" name="is_active">
+                    <option value="1" ${cat?.is_active !== false ? 'selected' : ''}>Активна</option>
+                    <option value="0" ${cat?.is_active === false ? 'selected' : ''}>Неактивна</option>
+                </select>
             </div>
             <div class="modal-footer">
                 <button type="button" class="btn btn-outline" onclick="closeModal()">Скасувати</button>
@@ -710,6 +740,8 @@ async function saveBlogCategory(e, id) {
     e.preventDefault();
     const data = Object.fromEntries(new FormData(e.target));
     data.sort_order = parseInt(data.sort_order) || 0;
+    data.is_active = data.is_active === '1';
+    data.parent_id = data.parent_id ? parseInt(data.parent_id) : null;
     
     try {
         if (id) {
