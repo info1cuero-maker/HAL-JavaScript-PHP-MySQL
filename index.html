@@ -146,15 +146,16 @@
         // Load categories
         async function loadCategories() {
             try {
-                const categories = await HAL.api.get('/categories');
+                const categories = await HAL.api.get('/categories?flat=true');
                 
-                // Main grid
+                // Main grid - only parent categories (no parent_id)
                 const grid = document.getElementById('categories-grid');
-                grid.innerHTML = categories.map(HAL.renderCategoryCard).join('');
+                const parentCategories = categories.filter(cat => !cat.parent_id);
+                grid.innerHTML = parentCategories.slice(0, 8).map(HAL.renderCategoryCard).join('');
                 
                 // Footer
                 const footerCats = document.getElementById('footer-categories');
-                footerCats.innerHTML = categories.slice(0, 5).map(cat => {
+                footerCats.innerHTML = parentCategories.slice(0, 5).map(cat => {
                     const name = HAL.state.language === 'uk' ? cat.nameUk : cat.nameRu;
                     return `<li><a href="/search?category=${cat.id}">${name}</a></li>`;
                 }).join('');
