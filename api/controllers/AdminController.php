@@ -972,6 +972,66 @@ class AdminController {
         Response::json($stmt->fetchAll());
     }
     
+    // ==================== STATIC PAGES ====================
+    
+    /**
+     * Get all static pages
+     */
+    public function getPages() {
+        $this->requireAdminAccess();
+        
+        $stmt = $this->db->query("SELECT * FROM pages ORDER BY slug");
+        Response::json($stmt->fetchAll());
+    }
+    
+    /**
+     * Get single page
+     */
+    public function getPage($id) {
+        $this->requireAdminAccess();
+        
+        $stmt = $this->db->prepare("SELECT * FROM pages WHERE id = ?");
+        $stmt->execute([$id]);
+        $page = $stmt->fetch();
+        
+        if (!$page) {
+            Response::error('Page not found', 404);
+        }
+        
+        Response::json($page);
+    }
+    
+    /**
+     * Update static page
+     */
+    public function updatePage($id) {
+        $user = $this->requireAdminAccess(false);
+        $data = Response::getJsonBody();
+        
+        $allowedFields = ['title_uk', 'title_ru', 'content_uk', 'content_ru', 'meta_title_uk', 'meta_title_ru', 'meta_description_uk', 'meta_description_ru', 'meta_keywords_uk', 'meta_keywords_ru', 'is_active'];
+        
+        $fields = [];
+        $params = [];
+        
+        foreach ($allowedFields as $field) {
+            if (isset($data[$field])) {
+                $fields[] = "$field = ?";
+                $params[] = $data[$field];
+            }
+        }
+        
+        if (empty($fields)) {
+            Response::error('No fields to update', 400);
+        }
+        
+        $params[] = $id;
+        $stmt = $this->db->prepare("UPDATE pages SET " . implode(', ', $fields) . " WHERE id = ?");
+        $stmt->execute($params);
+        
+        $this->logAction($user['id'], 'update', 'page', $id, $data);
+        Response::success('Page updated');
+    }
+    
     // ==================== HELPERS ====================
     
     private function generateSlug($text) {
