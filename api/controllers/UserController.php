@@ -8,16 +8,21 @@ class UserController {
     }
     
     /**
-     * Get user dashboard with statistics
+     * Get user dashboard with statistics and date filtering
      */
     public function dashboard() {
         $user = JWT::requireAuth($this->db);
         
+        // Date range filter
+        $dateFrom = $_GET['from'] ?? date('Y-m-d', strtotime('-30 days'));
+        $dateTo = $_GET['to'] ?? date('Y-m-d');
+        
         // Get user's companies
         $stmt = $this->db->prepare("
-            SELECT id, name, name_ru, rating, review_count, created_at
+            SELECT c.*, 
+                   (SELECT filename FROM company_images WHERE company_id = c.id AND is_main = 1 LIMIT 1) as main_image
             FROM companies
-            WHERE user_id = ?
+            c WHERE user_id = ?
         ");
         $stmt->execute([$user['id']]);
         $companies = $stmt->fetchAll();
@@ -25,11 +30,15 @@ class UserController {
         $stats = [];
         $total_views = 0;
         $total_reviews = 0;
+        $dailyStats = [];
         
         foreach ($companies as $company) {
-            // Get views
-            $stmt = $this->db->prepare("SELECT COUNT(*) as total FROM company_views WHERE company_id = ?");
-            $stmt->execute([$company['id']]);
+            // Get total views for date range
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) as total FROM company_views 
+                WHERE company_id = ? AND DATE(viewed_at) BETWEEN ? AND ?
+            ");
+            $stmt->execute([$company['id'], $dateFrom, $dateTo]);
             $views = $stmt->fetch()['total'];
             
             // Views this week
@@ -48,13 +57,59 @@ class UserController {
             $stmt->execute([$company['id']]);
             $views_month = $stmt->fetch()['total'];
             
+            // Get reviews count for date range
+            $stmt = $this->db->prepare("
+                SELECT COUNT(*) as total FROM reviews 
+                WHERE company_id = ? AND DATE(created_at) BETWEEN ? AND ?
+            ");
+            $stmt->execute([$company['id'], $dateFrom, $dateTo]);
+            $reviews_count = $stmt->fetch()['total'];
+            
+            // Get daily views for chart
+            $stmt = $this->db->prepare("
+                SELECT DATE(viewed_at) as date, COUNT(*) as views 
+                FROM company_views 
+                WHERE company_id = ? AND DATE(viewed_at) BETWEEN ? AND ?
+                GROUP BY DATE(viewed_at)
+                ORDER BY date
+            ");
+            $stmt->execute([$company['id'], $dateFrom, $dateTo]);
+            $daily = $stmt->fetchAll();
+            
+            // Fill missing dates with 0
+            $start = new DateTime($dateFrom);
+            $end = new DateTime($dateTo);
+            $interval = DateInterval::createFromDateString('1 day');
+            $period = new DatePeriod($start, $interval, $end->modify('+1 day'));
+            
+            $dailyMap = [];
+            foreach ($daily as $d) {
+                $dailyMap[$d['date']] = (int)$d['views'];
+            }
+            
+            foreach ($period as $dt) {
+                $dateKey = $dt->format('Y-m-d');
+                $dailyStats[] = [
+                    'date' => $dateKey,
+                    'views' => $dailyMap[$dateKey] ?? 0
+                ];
+            }
+            
+            $mainImage = $company['main_image'] 
+                ? '/uploads/companies/' . $company['main_image'] 
+                : null;
+            
             $stats[] = [
                 'companyId' => $company['id'],
                 'companyName' => $company['name'],
+                'city' => $company['city'],
+                'phone' => $company['phone'],
+                'mainImage' => $mainImage,
                 'totalViews' => (int)$views,
                 'viewsThisWeek' => (int)$views_week,
                 'viewsThisMonth' => (int)$views_month,
                 'totalReviews' => (int)$company['review_count'],
+                'reviewsInPeriod' => (int)$reviews_count,
                 'averageRating' => (float)$company['rating']
             ];
             
@@ -63,14 +118,44 @@ class UserController {
         }
         
         Response::json([
-            'user' => $user,
+            'user' => [
+                'id' => $user['id'],
+                'name' => $user['name'],
+                'email' => $user['email'],
+                'phone' => $user['phone'] ?? null
+            ],
             'overview' => [
                 'totalCompanies' => count($companies),
                 'totalViews' => $total_views,
                 'totalReviews' => $total_reviews
             ],
-            'companies' => $stats
+            'companies' => $stats,
+            'dailyStats' => $dailyStats,
+            'dateRange' => [
+                'from' => $dateFrom,
+                'to' => $dateTo
+            ]
         ]);
+    }
+    
+    /**
+     * Get user's reviews
+     */
+    public function myReviews() {
+        $user = JWT::requireAuth($this->db);
+        
+        $stmt = $this->db->prepare("
+            SELECT r.*, u.name as user_name, c.name as company_name
+            FROM reviews r
+            JOIN companies c ON r.company_id = c.id
+            LEFT JOIN users u ON r.user_id = u.id
+            WHERE c.user_id = ?
+            ORDER BY r.created_at DESC
+            LIMIT 100
+        ");
+        $stmt->execute([$user['id']]);
+        
+        Response::json($stmt->fetchAll());
     }
     
     /**
