@@ -524,8 +524,42 @@ async function openCompanyModal(id = null) {
                 </div>
             </div>
             
+            <details style="margin-top: 1rem; padding: 1rem; background: var(--bg-gray); border-radius: var(--radius);">
+                <summary style="cursor: pointer; font-weight: 500; margin-bottom: 1rem;">🔍 SEO налаштування</summary>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Meta Title (UA)</label>
+                        <input type="text" class="form-input" name="meta_title_uk" value="${company?.meta_title_uk || ''}" placeholder="Заголовок для пошукових систем">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Meta Title (RU)</label>
+                        <input type="text" class="form-input" name="meta_title_ru" value="${company?.meta_title_ru || ''}">
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Meta Description (UA)</label>
+                        <textarea class="form-textarea" name="meta_description_uk" rows="2" placeholder="Опис для пошукових систем">${company?.meta_description_uk || ''}</textarea>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Meta Description (RU)</label>
+                        <textarea class="form-textarea" name="meta_description_ru" rows="2">${company?.meta_description_ru || ''}</textarea>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="form-group">
+                        <label class="form-label">Meta Keywords (UA)</label>
+                        <input type="text" class="form-input" name="meta_keywords_uk" value="${company?.meta_keywords_uk || ''}" placeholder="ключове слово 1, ключове слово 2">
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Meta Keywords (RU)</label>
+                        <input type="text" class="form-input" name="meta_keywords_ru" value="${company?.meta_keywords_ru || ''}">
+                    </div>
+                </div>
+            </details>
+            
             ${isEdit ? `
-            <div class="form-group">
+            <div class="form-group" style="margin-top: 1rem;">
                 <label class="form-label">Зображення (WebP, макс. 10)</label>
                 <div class="image-upload-grid" id="images-grid">
                     ${(company.images || []).map(img => `
