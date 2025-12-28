@@ -399,18 +399,21 @@ function renderCategoryCard(category) {
 function renderBlogCard(post) {
     const title = state.language === 'uk' ? post.title_uk : post.title_ru;
     const excerpt = state.language === 'uk' ? post.excerpt_uk : post.excerpt_ru;
+    const image = post.image || post.featured_image || 'https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&h=400&fit=crop';
+    const author = post.author || 'HAL';
+    const date = post.published_at || post.created_at;
     
     return `
-        <a href="/blog/${post.id}" class="blog-card">
+        <a href="/blog/${post.slug || post.id}" class="blog-card">
             <div class="blog-image">
-                <img src="${post.image}" alt="${title}" loading="lazy">
+                <img src="${image}" alt="${title}" loading="lazy" onerror="this.src='https://images.unsplash.com/photo-1499750310107-5fef28a66643?w=600&h=400&fit=crop'">
             </div>
             <div class="blog-body">
                 <h3 class="blog-title">${title}</h3>
                 <p class="blog-excerpt">${excerpt}</p>
                 <div class="blog-meta">
-                    <span>${post.author}</span>
-                    <span>${formatDate(post.published_at)}</span>
+                    <span>${author}</span>
+                    <span>${formatDate(date)}</span>
                 </div>
             </div>
         </a>
