@@ -119,8 +119,8 @@ class AdminController {
         }
         
         $stmt = $this->db->prepare("
-            INSERT INTO categories (slug, name_uk, name_ru, description_uk, description_ru, icon, sort_order, parent_id) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO categories (slug, name_uk, name_ru, description_uk, description_ru, icon, sort_order, parent_id, meta_title_uk, meta_title_ru, meta_description_uk, meta_description_ru, meta_keywords_uk, meta_keywords_ru) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data['slug'],
@@ -130,7 +130,13 @@ class AdminController {
             $data['description_ru'] ?? null,
             $data['icon'] ?? 'folder',
             $data['sort_order'] ?? 0,
-            $data['parent_id'] ?? null
+            $data['parent_id'] ?? null,
+            $data['meta_title_uk'] ?? null,
+            $data['meta_title_ru'] ?? null,
+            $data['meta_description_uk'] ?? null,
+            $data['meta_description_ru'] ?? null,
+            $data['meta_keywords_uk'] ?? null,
+            $data['meta_keywords_ru'] ?? null
         ]);
         
         $id = $this->db->lastInsertId();
