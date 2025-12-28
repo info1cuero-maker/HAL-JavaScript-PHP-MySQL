@@ -121,6 +121,11 @@ $routes = [
     'PUT admin/messages/(\d+)/read' => 'controllers/AdminController.php@markMessageRead',
     'DELETE admin/messages/(\d+)' => 'controllers/AdminController.php@deleteMessage',
     
+    // Static Pages (SEO)
+    'GET admin/pages' => 'controllers/AdminController.php@getPages',
+    'GET admin/pages/(\d+)' => 'controllers/AdminController.php@getPage',
+    'PUT admin/pages/(\d+)' => 'controllers/AdminController.php@updatePage',
+    
     // Logs
     'GET admin/logs' => 'controllers/AdminController.php@getLogs',
 ];
