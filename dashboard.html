@@ -9,7 +9,7 @@
     <style>
         .dashboard-grid {
             display: grid;
-            grid-template-columns: 300px 1fr;
+            grid-template-columns: 280px 1fr;
             gap: 2rem;
         }
         .sidebar {
@@ -18,6 +18,8 @@
             padding: 1.5rem;
             box-shadow: var(--shadow-md);
             height: fit-content;
+            position: sticky;
+            top: 90px;
         }
         .user-info {
             text-align: center;
@@ -35,6 +37,7 @@
             justify-content: center;
             color: white;
             font-size: 2rem;
+            font-weight: 700;
             margin: 0 auto 1rem;
         }
         .user-name {
@@ -59,6 +62,7 @@
             border-radius: var(--radius);
             color: var(--text-gray);
             transition: all 0.2s;
+            cursor: pointer;
         }
         .nav-menu a:hover, .nav-menu a.active {
             background: var(--bg-gray);
@@ -70,57 +74,316 @@
             padding: 2rem;
             box-shadow: var(--shadow-md);
         }
+        
+        /* Date Range Picker */
+        .date-range-picker {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            padding: 1rem;
+            background: var(--bg-gray);
+            border-radius: var(--radius);
+            flex-wrap: wrap;
+        }
+        .date-range-picker label {
+            font-size: 0.875rem;
+            color: var(--text-gray);
+        }
+        .date-range-picker input[type="date"] {
+            padding: 0.5rem;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-family: inherit;
+        }
+        .date-presets {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        .date-preset {
+            padding: 0.375rem 0.75rem;
+            background: white;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            font-size: 0.75rem;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .date-preset:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .date-preset.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        /* Stats Cards */
         .stats-cards {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-            gap: 1.5rem;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+            gap: 1rem;
             margin-bottom: 2rem;
         }
         .stat-card {
             background: var(--bg-gray);
-            padding: 1.5rem;
+            padding: 1.25rem;
             border-radius: var(--radius);
+            position: relative;
+            overflow: hidden;
         }
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 4px;
+            height: 100%;
+            background: var(--primary);
+        }
+        .stat-card.views::before { background: #3b82f6; }
+        .stat-card.reviews::before { background: #f59e0b; }
+        .stat-card.rating::before { background: #10b981; }
+        .stat-card.growth::before { background: #8b5cf6; }
+        
         .stat-value {
             font-size: 2rem;
             font-weight: 700;
-            color: var(--primary);
+            color: var(--text-dark);
+            line-height: 1;
+            margin-bottom: 0.25rem;
         }
         .stat-label {
             color: var(--text-gray);
             font-size: 0.875rem;
         }
-        .companies-list {
-            margin-top: 2rem;
+        .stat-change {
+            font-size: 0.75rem;
+            margin-top: 0.5rem;
         }
-        .company-item {
+        .stat-change.positive { color: #10b981; }
+        .stat-change.negative { color: #ef4444; }
+        
+        /* Chart */
+        .chart-container {
+            margin: 2rem 0;
+            padding: 1.5rem;
+            background: var(--bg-gray);
+            border-radius: var(--radius);
+        }
+        .chart-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .chart-title {
+            font-weight: 600;
+        }
+        .chart-placeholder {
+            height: 200px;
             display: flex;
             align-items: center;
-            gap: 1rem;
-            padding: 1rem 0;
-            border-bottom: 1px solid var(--border);
+            justify-content: center;
+            color: var(--text-gray);
         }
-        .company-item img {
-            width: 60px;
-            height: 60px;
+        .simple-chart {
+            display: flex;
+            align-items: flex-end;
+            gap: 4px;
+            height: 150px;
+            padding-top: 1rem;
+        }
+        .chart-bar {
+            flex: 1;
+            background: linear-gradient(to top, var(--primary), var(--secondary));
+            border-radius: 4px 4px 0 0;
+            min-width: 20px;
+            max-width: 50px;
+            position: relative;
+            cursor: pointer;
+            transition: opacity 0.2s;
+        }
+        .chart-bar:hover {
+            opacity: 0.8;
+        }
+        .chart-bar-label {
+            position: absolute;
+            bottom: -24px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.625rem;
+            color: var(--text-light);
+            white-space: nowrap;
+        }
+        .chart-bar-value {
+            position: absolute;
+            top: -20px;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 0.625rem;
+            font-weight: 600;
+            color: var(--text-dark);
+        }
+        
+        /* Company Section */
+        .company-section {
+            margin-top: 2rem;
+            padding-top: 2rem;
+            border-top: 1px solid var(--border);
+        }
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+        .company-card-big {
+            display: flex;
+            gap: 1.5rem;
+            padding: 1.5rem;
+            background: var(--bg-gray);
+            border-radius: var(--radius-lg);
+            margin-bottom: 1rem;
+        }
+        .company-card-big img {
+            width: 120px;
+            height: 120px;
             border-radius: var(--radius);
             object-fit: cover;
         }
-        .company-item-info {
+        .company-info {
             flex: 1;
         }
-        .company-item-name {
-            font-weight: 500;
-            margin-bottom: 0.25rem;
+        .company-name {
+            font-size: 1.25rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
         }
-        .company-item-stats {
+        .company-meta {
+            display: flex;
+            gap: 1.5rem;
             color: var(--text-gray);
             font-size: 0.875rem;
+            margin-bottom: 1rem;
         }
+        .company-actions {
+            display: flex;
+            gap: 0.5rem;
+            flex-wrap: wrap;
+        }
+        
+        /* Reviews List */
+        .reviews-list {
+            margin-top: 1.5rem;
+        }
+        .review-item {
+            padding: 1rem;
+            border-bottom: 1px solid var(--border);
+        }
+        .review-item:last-child {
+            border-bottom: none;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 0.5rem;
+        }
+        .review-author {
+            font-weight: 500;
+        }
+        .review-date {
+            color: var(--text-light);
+            font-size: 0.875rem;
+        }
+        .review-stars {
+            color: #f59e0b;
+            margin-bottom: 0.5rem;
+        }
+        .review-text {
+            color: var(--text-gray);
+            font-size: 0.9375rem;
+        }
+        .review-status {
+            display: inline-block;
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+            margin-left: 0.5rem;
+        }
+        .review-status.pending { background: #fef3c7; color: #92400e; }
+        .review-status.approved { background: #d1fae5; color: #065f46; }
+        
+        /* No Company State */
+        .no-company {
+            text-align: center;
+            padding: 3rem;
+            background: var(--bg-gray);
+            border-radius: var(--radius-lg);
+        }
+        .no-company-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+        .no-company h3 {
+            margin-bottom: 0.5rem;
+        }
+        .no-company p {
+            color: var(--text-gray);
+            margin-bottom: 1.5rem;
+        }
+        
         @media (max-width: 768px) {
             .dashboard-grid {
                 grid-template-columns: 1fr;
             }
+            .sidebar {
+                position: static;
+            }
+            .company-card-big {
+                flex-direction: column;
+            }
+            .company-card-big img {
+                width: 100%;
+                height: 200px;
+            }
+        }
+        
+        /* Modal styles */
+        .modal-overlay { 
+            position: fixed; 
+            inset: 0; 
+            background: rgba(0,0,0,0.5); 
+            z-index: 1000; 
+        }
+        .modal-content {
+            max-width: 700px;
+            max-height: 90vh;
+            overflow-y: auto;
+            background: white;
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            z-index: 1001;
+        }
+        .modal-content h2 {
+            margin-bottom: 1.5rem;
+        }
+        .form-group {
+            margin-bottom: 1rem;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1rem;
+        }
+        @media (max-width: 640px) {
+            .form-row { grid-template-columns: 1fr; }
         }
     </style>
 </head>
@@ -157,40 +420,16 @@
                     </div>
                     <nav>
                         <ul class="nav-menu">
-                            <li><a href="#" class="active">📊 Статистика</a></li>
-                            <li><a href="#companies">🏢 Мої компанії</a></li>
-                            <li><a href="#reviews">⭐ Відгуки</a></li>
-                            <li><a href="#settings">⚙️ Налаштування</a></li>
+                            <li><a class="active" onclick="showSection('overview')">📊 Огляд</a></li>
+                            <li><a onclick="showSection('company')">🏢 Моя компанія</a></li>
+                            <li><a onclick="showSection('reviews')">⭐ Відгуки</a></li>
+                            <li><a onclick="showSection('settings')">⚙️ Налаштування</a></li>
                         </ul>
                     </nav>
                 </aside>
 
-                <div class="main-content">
-                    <h2 class="mb-3">Огляд</h2>
-                    
-                    <div class="stats-cards" id="stats-cards">
-                        <div class="stat-card">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Компаній</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Переглядів</div>
-                        </div>
-                        <div class="stat-card">
-                            <div class="stat-value">-</div>
-                            <div class="stat-label">Відгуків</div>
-                        </div>
-                    </div>
-
-                    <h3 class="mb-2">Мої компанії</h3>
-                    <div id="companies-list" class="companies-list">
-                        <p style="color: var(--text-gray)">Завантаження...</p>
-                    </div>
-                    
-                    <a href="/add-business" class="btn btn-primary" style="margin-top: 1.5rem">
-                        + Додати компанію
-                    </a>
+                <div class="main-content" id="content">
+                    <!-- Content will be loaded here -->
                 </div>
             </div>
         </div>
@@ -198,6 +437,13 @@
 
     <script src="assets/js/app.js"></script>
     <script>
+        // State
+        let dashboardData = null;
+        let currentSection = 'overview';
+        let dateFrom = getDateOffset(-30);
+        let dateTo = getToday();
+        let statsData = [];
+        
         // Check auth
         if (!HAL.state.user) {
             window.location.href = '/login';
@@ -210,116 +456,458 @@
             document.getElementById('user-avatar').textContent = HAL.state.user.name.charAt(0).toUpperCase();
         }
 
-        // Load dashboard data
-        async function loadDashboard() {
-            try {
-                const data = await HAL.api.get('/users/me/dashboard');
-                
-                // Update stats
-                document.getElementById('stats-cards').innerHTML = `
-                    <div class="stat-card">
-                        <div class="stat-value">${data.overview.totalCompanies}</div>
-                        <div class="stat-label">Компаній</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${data.overview.totalViews}</div>
-                        <div class="stat-label">Переглядів</div>
-                    </div>
-                    <div class="stat-card">
-                        <div class="stat-value">${data.overview.totalReviews}</div>
-                        <div class="stat-label">Відгуків</div>
-                    </div>
-                `;
+        // Date helpers
+        function getToday() {
+            return new Date().toISOString().split('T')[0];
+        }
+        
+        function getDateOffset(days) {
+            const date = new Date();
+            date.setDate(date.getDate() + days);
+            return date.toISOString().split('T')[0];
+        }
 
-                // Update companies list
-                if (data.companies.length > 0) {
-                    document.getElementById('companies-list').innerHTML = data.companies.map(c => `
-                        <div class="company-item">
-                            <div class="company-item-info">
-                                <div class="company-item-name">${c.companyName}</div>
-                                <div class="company-item-stats">
-                                    👁 ${c.totalViews} переглядів | ⭐ ${c.averageRating} рейтинг | 💬 ${c.totalReviews} відгуків
-                                </div>
-                            </div>
-                            <div style="display: flex; gap: 0.5rem">
-                                <button class="btn btn-outline" onclick="openEditCompanyModal(${c.companyId})">✏️ Редагувати</button>
-                                <a href="/company/${c.companyId}" class="btn btn-outline" target="_blank">👁 Переглянути</a>
-                            </div>
-                        </div>
-                    `).join('');
-                } else {
-                    document.getElementById('companies-list').innerHTML = `
-                        <p style="color: var(--text-gray)">У вас ще немає компаній</p>
-                    `;
-                }
-            } catch (error) {
-                console.error('Failed to load dashboard:', error);
+        // Section navigation
+        function showSection(section) {
+            currentSection = section;
+            document.querySelectorAll('.nav-menu a').forEach(a => a.classList.remove('active'));
+            event.target.classList.add('active');
+            
+            switch(section) {
+                case 'overview':
+                    renderOverview();
+                    break;
+                case 'company':
+                    renderCompanySection();
+                    break;
+                case 'reviews':
+                    renderReviewsSection();
+                    break;
+                case 'settings':
+                    renderSettingsSection();
+                    break;
             }
         }
 
-        loadDashboard();
+        // Load dashboard data
+        async function loadDashboard() {
+            try {
+                const params = new URLSearchParams({
+                    from: dateFrom,
+                    to: dateTo
+                });
+                dashboardData = await HAL.api.get(`/users/me/dashboard?${params}`);
+                renderOverview();
+            } catch (error) {
+                console.error('Failed to load dashboard:', error);
+                document.getElementById('content').innerHTML = `
+                    <div class="no-company">
+                        <div class="no-company-icon">⚠️</div>
+                        <h3>Помилка завантаження</h3>
+                        <p>${error.message}</p>
+                        <button class="btn btn-primary" onclick="loadDashboard()">Спробувати знову</button>
+                    </div>
+                `;
+            }
+        }
+
+        // Render Overview
+        function renderOverview() {
+            if (!dashboardData) return;
+            
+            const company = dashboardData.companies[0];
+            
+            if (!company) {
+                document.getElementById('content').innerHTML = `
+                    <div class="no-company">
+                        <div class="no-company-icon">🏢</div>
+                        <h3>У вас ще немає компанії</h3>
+                        <p>Додайте свою компанію до каталогу HAL, щоб отримувати клієнтів</p>
+                        <a href="/add-business" class="btn btn-primary btn-lg">+ Додати компанію</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            // Calculate growth
+            const viewsGrowth = company.viewsThisWeek > 0 ? Math.round((company.viewsThisWeek / Math.max(company.viewsThisMonth - company.viewsThisWeek, 1)) * 100 - 100) : 0;
+            
+            document.getElementById('content').innerHTML = `
+                <h2 style="margin-bottom: 1rem">Огляд статистики</h2>
+                
+                <!-- Date Range Picker -->
+                <div class="date-range-picker">
+                    <div>
+                        <label>Від:</label>
+                        <input type="date" id="date-from" value="${dateFrom}" onchange="updateDateRange()">
+                    </div>
+                    <div>
+                        <label>До:</label>
+                        <input type="date" id="date-to" value="${dateTo}" onchange="updateDateRange()">
+                    </div>
+                    <div class="date-presets">
+                        <button class="date-preset" onclick="setDatePreset(7)">7 днів</button>
+                        <button class="date-preset active" onclick="setDatePreset(30)">30 днів</button>
+                        <button class="date-preset" onclick="setDatePreset(90)">90 днів</button>
+                        <button class="date-preset" onclick="setDatePreset(365)">Рік</button>
+                    </div>
+                </div>
+                
+                <!-- Stats Cards -->
+                <div class="stats-cards">
+                    <div class="stat-card views">
+                        <div class="stat-value">${company.totalViews || 0}</div>
+                        <div class="stat-label">Переглядів</div>
+                        <div class="stat-change ${viewsGrowth >= 0 ? 'positive' : 'negative'}">
+                            ${viewsGrowth >= 0 ? '↑' : '↓'} ${Math.abs(viewsGrowth)}% за тиждень
+                        </div>
+                    </div>
+                    <div class="stat-card reviews">
+                        <div class="stat-value">${company.totalReviews || 0}</div>
+                        <div class="stat-label">Відгуків</div>
+                    </div>
+                    <div class="stat-card rating">
+                        <div class="stat-value">${(company.averageRating || 0).toFixed(1)}</div>
+                        <div class="stat-label">Рейтинг</div>
+                    </div>
+                    <div class="stat-card growth">
+                        <div class="stat-value">${company.viewsThisMonth || 0}</div>
+                        <div class="stat-label">За місяць</div>
+                    </div>
+                </div>
+                
+                <!-- Chart -->
+                <div class="chart-container">
+                    <div class="chart-header">
+                        <div class="chart-title">📈 Перегляди за період</div>
+                    </div>
+                    <div id="chart" class="simple-chart">
+                        ${renderChart(dashboardData.dailyStats || [])}
+                    </div>
+                </div>
+                
+                <!-- Company Card -->
+                <div class="company-section">
+                    <div class="section-header">
+                        <h3>Моя компанія</h3>
+                    </div>
+                    <div class="company-card-big">
+                        <img src="${company.mainImage || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200&h=200&fit=crop'}" alt="${company.companyName}">
+                        <div class="company-info">
+                            <div class="company-name">${company.companyName}</div>
+                            <div class="company-meta">
+                                <span>👁 ${company.totalViews} переглядів</span>
+                                <span>⭐ ${(company.averageRating || 0).toFixed(1)} рейтинг</span>
+                                <span>💬 ${company.totalReviews} відгуків</span>
+                            </div>
+                            <div class="company-actions">
+                                <button class="btn btn-primary" onclick="openEditCompanyModal(${company.companyId})">✏️ Редагувати</button>
+                                <a href="/company/${company.companyId}" class="btn btn-outline" target="_blank">👁 Переглянути</a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
         
+        function renderChart(dailyStats) {
+            if (!dailyStats || dailyStats.length === 0) {
+                // Generate mock data for demo
+                const days = [];
+                for (let i = 29; i >= 0; i--) {
+                    const date = new Date();
+                    date.setDate(date.getDate() - i);
+                    days.push({
+                        date: date.toISOString().split('T')[0],
+                        views: Math.floor(Math.random() * 20) + 1
+                    });
+                }
+                dailyStats = days;
+            }
+            
+            const maxViews = Math.max(...dailyStats.map(d => d.views), 1);
+            
+            return dailyStats.slice(-14).map(day => {
+                const height = Math.max((day.views / maxViews) * 100, 5);
+                const dateObj = new Date(day.date);
+                const label = `${dateObj.getDate()}/${dateObj.getMonth() + 1}`;
+                return `
+                    <div class="chart-bar" style="height: ${height}%" title="${day.date}: ${day.views} переглядів">
+                        <span class="chart-bar-value">${day.views}</span>
+                        <span class="chart-bar-label">${label}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function updateDateRange() {
+            dateFrom = document.getElementById('date-from').value;
+            dateTo = document.getElementById('date-to').value;
+            loadDashboard();
+        }
+
+        function setDatePreset(days) {
+            dateFrom = getDateOffset(-days);
+            dateTo = getToday();
+            document.querySelectorAll('.date-preset').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadDashboard();
+        }
+
+        // Render Company Section
+        function renderCompanySection() {
+            if (!dashboardData || !dashboardData.companies[0]) {
+                document.getElementById('content').innerHTML = `
+                    <div class="no-company">
+                        <div class="no-company-icon">🏢</div>
+                        <h3>У вас ще немає компанії</h3>
+                        <p>Додайте свою компанію до каталогу HAL</p>
+                        <a href="/add-business" class="btn btn-primary btn-lg">+ Додати компанію</a>
+                    </div>
+                `;
+                return;
+            }
+            
+            const company = dashboardData.companies[0];
+            
+            document.getElementById('content').innerHTML = `
+                <h2 style="margin-bottom: 1.5rem">Моя компанія</h2>
+                
+                <div class="company-card-big">
+                    <img src="${company.mainImage || 'https://images.unsplash.com/photo-1560179707-f14e90ef3623?w=200&h=200&fit=crop'}" alt="${company.companyName}">
+                    <div class="company-info">
+                        <div class="company-name">${company.companyName}</div>
+                        <div class="company-meta">
+                            <span>📍 ${company.city || 'Київ'}</span>
+                            <span>📞 ${company.phone || '-'}</span>
+                        </div>
+                        <div class="company-actions">
+                            <button class="btn btn-primary" onclick="openEditCompanyModal(${company.companyId})">✏️ Редагувати</button>
+                            <a href="/company/${company.companyId}" class="btn btn-outline" target="_blank">👁 Переглянути на сайті</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <div style="margin-top: 2rem">
+                    <h3 style="margin-bottom: 1rem">Статистика</h3>
+                    <div class="stats-cards">
+                        <div class="stat-card views">
+                            <div class="stat-value">${company.totalViews}</div>
+                            <div class="stat-label">Всього переглядів</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${company.viewsThisWeek}</div>
+                            <div class="stat-label">За тиждень</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-value">${company.viewsThisMonth}</div>
+                            <div class="stat-label">За місяць</div>
+                        </div>
+                        <div class="stat-card reviews">
+                            <div class="stat-value">${company.totalReviews}</div>
+                            <div class="stat-label">Відгуків</div>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }
+
+        // Render Reviews Section
+        async function renderReviewsSection() {
+            document.getElementById('content').innerHTML = `
+                <h2 style="margin-bottom: 1.5rem">Відгуки</h2>
+                <div style="text-align: center; padding: 2rem; color: var(--text-gray)">Завантаження...</div>
+            `;
+            
+            try {
+                const reviews = await HAL.api.get('/users/me/reviews');
+                
+                if (!reviews || reviews.length === 0) {
+                    document.getElementById('content').innerHTML = `
+                        <h2 style="margin-bottom: 1.5rem">Відгуки</h2>
+                        <div class="no-company">
+                            <div class="no-company-icon">⭐</div>
+                            <h3>Поки немає відгуків</h3>
+                            <p>Коли клієнти залишать відгуки про вашу компанію, вони з'являться тут</p>
+                        </div>
+                    `;
+                    return;
+                }
+                
+                document.getElementById('content').innerHTML = `
+                    <h2 style="margin-bottom: 1.5rem">Відгуки (${reviews.length})</h2>
+                    <div class="reviews-list">
+                        ${reviews.map(review => `
+                            <div class="review-item">
+                                <div class="review-header">
+                                    <span class="review-author">
+                                        ${review.user_name}
+                                        <span class="review-status ${review.status}">${review.status === 'approved' ? 'Опубліковано' : 'На модерації'}</span>
+                                    </span>
+                                    <span class="review-date">${formatDate(review.created_at)}</span>
+                                </div>
+                                <div class="review-stars">${'★'.repeat(review.rating)}${'☆'.repeat(5 - review.rating)}</div>
+                                <div class="review-text">${review.comment}</div>
+                            </div>
+                        `).join('')}
+                    </div>
+                `;
+            } catch (error) {
+                document.getElementById('content').innerHTML = `
+                    <h2 style="margin-bottom: 1.5rem">Відгуки</h2>
+                    <div class="no-company">
+                        <div class="no-company-icon">⭐</div>
+                        <h3>Поки немає відгуків</h3>
+                        <p>Коли клієнти залишать відгуки про вашу компанію, вони з'являться тут</p>
+                    </div>
+                `;
+            }
+        }
+
+        // Render Settings Section
+        function renderSettingsSection() {
+            const user = HAL.state.user;
+            
+            document.getElementById('content').innerHTML = `
+                <h2 style="margin-bottom: 1.5rem">Налаштування профілю</h2>
+                
+                <form id="settings-form" onsubmit="saveSettings(event)">
+                    <div class="form-group">
+                        <label class="form-label">Ім'я</label>
+                        <input type="text" class="form-input" name="name" value="${user.name}" required>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Email</label>
+                        <input type="email" class="form-input" value="${user.email}" disabled>
+                        <small style="color: var(--text-gray)">Email не можна змінити</small>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Телефон</label>
+                        <input type="tel" class="form-input" name="phone" value="${user.phone || ''}" placeholder="+380 XX XXX XX XX">
+                    </div>
+                    <button type="submit" class="btn btn-primary">Зберегти зміни</button>
+                </form>
+            `;
+        }
+
+        async function saveSettings(e) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            
+            try {
+                const updated = await HAL.api.put('/users/me', data);
+                HAL.state.user = { ...HAL.state.user, ...updated };
+                localStorage.setItem('hal_user', JSON.stringify(HAL.state.user));
+                document.getElementById('user-name').textContent = updated.name;
+                HAL.showToast('Налаштування збережено');
+            } catch (error) {
+                HAL.showToast(error.message, 'error');
+            }
+        }
+
         // Edit company modal
         async function openEditCompanyModal(companyId) {
             try {
                 const company = await HAL.api.get(`/users/me/companies/${companyId}`);
                 
-                // Create modal
                 const modal = document.createElement('div');
                 modal.id = 'edit-modal';
                 modal.innerHTML = `
                     <div class="modal-overlay" onclick="closeEditModal()"></div>
-                    <div class="modal-content" style="max-width: 600px; background: white; border-radius: var(--radius-lg); padding: 2rem; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1001; max-height: 90vh; overflow-y: auto;">
-                        <h2 style="margin-bottom: 1.5rem">Редагувати компанію</h2>
+                    <div class="modal-content">
+                        <h2>Редагувати компанію</h2>
                         <form id="edit-company-form" onsubmit="saveMyCompany(event, ${companyId})">
-                            <div class="form-group mb-3">
-                                <label class="form-label">Назва (UA) *</label>
-                                <input type="text" class="form-input" name="name" value="${company.name}" required>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Назва (UA) *</label>
+                                    <input type="text" class="form-input" name="name" value="${company.name}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Назва (RU)</label>
+                                    <input type="text" class="form-input" name="name_ru" value="${company.name_ru || ''}">
+                                </div>
                             </div>
-                            <div class="form-group mb-3">
-                                <label class="form-label">Назва (RU) *</label>
-                                <input type="text" class="form-input" name="name_ru" value="${company.name_ru || ''}">
-                            </div>
-                            <div class="form-group mb-3">
+                            <div class="form-group">
                                 <label class="form-label">Опис (UA) *</label>
                                 <textarea class="form-input" name="description" rows="3" required>${company.description}</textarea>
                             </div>
-                            <div class="form-group mb-3">
+                            <div class="form-group">
                                 <label class="form-label">Опис (RU)</label>
                                 <textarea class="form-input" name="description_ru" rows="3">${company.description_ru || ''}</textarea>
                             </div>
-                            <div class="form-group mb-3">
-                                <label class="form-label">Місто *</label>
-                                <input type="text" class="form-input" name="city" value="${company.city}" required>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Місто *</label>
+                                    <input type="text" class="form-input" name="city" value="${company.city}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Адреса *</label>
+                                    <input type="text" class="form-input" name="address" value="${company.address}" required>
+                                </div>
                             </div>
-                            <div class="form-group mb-3">
-                                <label class="form-label">Адреса *</label>
-                                <input type="text" class="form-input" name="address" value="${company.address}" required>
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label class="form-label">Телефон *</label>
+                                    <input type="tel" class="form-input" name="phone" value="${company.phone}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label class="form-label">Email *</label>
+                                    <input type="email" class="form-input" name="email" value="${company.email}" required>
+                                </div>
                             </div>
-                            <div class="form-group mb-3">
-                                <label class="form-label">Телефон *</label>
-                                <input type="tel" class="form-input" name="phone" value="${company.phone}" required>
-                            </div>
-                            <div class="form-group mb-3">
-                                <label class="form-label">Email *</label>
-                                <input type="email" class="form-input" name="email" value="${company.email}" required>
-                            </div>
-                            <div class="form-group mb-3">
+                            <div class="form-group">
                                 <label class="form-label">Веб-сайт</label>
                                 <input type="url" class="form-input" name="website" value="${company.website || ''}" placeholder="https://">
                             </div>
                             
-                            <div class="form-group mb-3">
+                            <!-- SEO Fields -->
+                            <details style="margin: 1rem 0; padding: 1rem; background: #f0f9ff; border-radius: var(--radius);">
+                                <summary style="cursor: pointer; font-weight: 500;">🔍 SEO налаштування</summary>
+                                <div style="margin-top: 1rem">
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Meta Title (UA)</label>
+                                            <input type="text" class="form-input" name="meta_title_uk" value="${company.meta_title_uk || ''}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Meta Title (RU)</label>
+                                            <input type="text" class="form-input" name="meta_title_ru" value="${company.meta_title_ru || ''}">
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Meta Description (UA)</label>
+                                            <textarea class="form-input" name="meta_description_uk" rows="2">${company.meta_description_uk || ''}</textarea>
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Meta Description (RU)</label>
+                                            <textarea class="form-input" name="meta_description_ru" rows="2">${company.meta_description_ru || ''}</textarea>
+                                        </div>
+                                    </div>
+                                    <div class="form-row">
+                                        <div class="form-group">
+                                            <label class="form-label">Keywords (UA)</label>
+                                            <input type="text" class="form-input" name="meta_keywords_uk" value="${company.meta_keywords_uk || ''}">
+                                        </div>
+                                        <div class="form-group">
+                                            <label class="form-label">Keywords (RU)</label>
+                                            <input type="text" class="form-input" name="meta_keywords_ru" value="${company.meta_keywords_ru || ''}">
+                                        </div>
+                                    </div>
+                                </div>
+                            </details>
+                            
+                            <div class="form-group">
                                 <label class="form-label">Зображення (WebP, макс. 10)</label>
                                 <div id="images-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-top: 0.5rem">
                                     ${(company.images || []).map(img => `
                                         <div style="position: relative;" data-id="${img.id}">
-                                            <img src="/uploads/companies/${img.filename}" style="width: 100%; height: 80px; object-fit: cover; border-radius: var(--radius);">
-                                            <button type="button" onclick="deleteMyImage(${img.id})" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;">×</button>
+                                            <img src="/uploads/companies/${img.filename}" style="width: 100%; height: 70px; object-fit: cover; border-radius: var(--radius);">
+                                            <button type="button" onclick="deleteMyImage(${img.id})" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer; font-size: 0.875rem;">×</button>
                                         </div>
                                     `).join('')}
                                     ${(company.images || []).length < 10 ? `
-                                    <label style="display: flex; align-items: center; justify-content: center; height: 80px; border: 2px dashed var(--border); border-radius: var(--radius); cursor: pointer;">
+                                    <label style="display: flex; align-items: center; justify-content: center; height: 70px; border: 2px dashed var(--border); border-radius: var(--radius); cursor: pointer;">
                                         <input type="file" accept=".webp" style="display:none" onchange="uploadMyImage(${companyId}, this)">
                                         <span style="font-size: 1.5rem; color: var(--text-gray)">+</span>
                                     </label>
@@ -334,9 +922,6 @@
                             </div>
                         </form>
                     </div>
-                    <style>
-                        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
-                    </style>
                 `;
                 document.body.appendChild(modal);
             } catch (error) {
@@ -366,7 +951,7 @@
             const file = input.files[0];
             if (!file) return;
             
-            if (!file.name.endsWith('.webp')) {
+            if (!file.name.toLowerCase().endsWith('.webp')) {
                 HAL.showToast('Дозволено тільки WebP формат', 'error');
                 return;
             }
@@ -375,13 +960,11 @@
             formData.append('image', file);
             
             try {
-                const response = await fetch(`/api/users/me/companies/${companyId}/images`, {
+                await fetch(`/api/users/me/companies/${companyId}/images`, {
                     method: 'POST',
                     headers: { 'Authorization': `Bearer ${HAL.state.token}` },
                     body: formData
                 });
-                
-                if (!response.ok) throw new Error('Upload failed');
                 
                 HAL.showToast('Зображення завантажено');
                 closeEditModal();
@@ -402,6 +985,14 @@
                 HAL.showToast(error.message, 'error');
             }
         }
+
+        function formatDate(dateStr) {
+            if (!dateStr) return '-';
+            return new Date(dateStr).toLocaleDateString('uk-UA');
+        }
+
+        // Initialize
+        loadDashboard();
     </script>
 </body>
 </html>
