@@ -6,6 +6,134 @@
     <title>Блог - HAL</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .blog-layout {
+            display: grid;
+            grid-template-columns: 260px 1fr;
+            gap: 2rem;
+        }
+        
+        .blog-sidebar {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+        
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .category-tree {
+            list-style: none;
+        }
+        
+        .category-tree li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .category-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            color: var(--text-gray);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .category-link:hover {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+        
+        .category-link.active {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .category-link .count {
+            background: var(--bg-gray);
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+        
+        .category-link.active .count {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .subcategories {
+            list-style: none;
+            margin-left: 1rem;
+            margin-top: 0.25rem;
+        }
+        
+        .subcategories .category-link {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+        
+        .blog-content h1 {
+            margin-bottom: 1.5rem;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+        
+        .pagination-btn {
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .pagination-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 1024px) {
+            .blog-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .blog-sidebar {
+                position: static;
+            }
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -36,12 +164,36 @@
     <!-- Main Content -->
     <main class="page-content">
         <div class="container">
-            <h1 class="section-title mb-4" data-i18n="blog.title">Блог</h1>
-            
-            <div id="blog-grid" class="blog-grid">
-                <div class="blog-card skeleton" style="height: 380px"></div>
-                <div class="blog-card skeleton" style="height: 380px"></div>
-                <div class="blog-card skeleton" style="height: 380px"></div>
+            <div class="blog-layout">
+                <!-- Sidebar -->
+                <aside class="blog-sidebar">
+                    <div class="sidebar-title">🏷️ Категорії</div>
+                    <ul class="category-tree" id="categories-tree">
+                        <li class="skeleton" style="height: 30px; margin-bottom: 0.5rem"></li>
+                        <li class="skeleton" style="height: 30px; margin-bottom: 0.5rem"></li>
+                        <li class="skeleton" style="height: 30px"></li>
+                    </ul>
+                </aside>
+
+                <!-- Blog Content -->
+                <div class="blog-content">
+                    <h1 class="section-title" data-i18n="blog.title">Блог</h1>
+                    
+                    <div id="blog-grid" class="blog-grid">
+                        <div class="blog-card skeleton" style="height: 380px"></div>
+                        <div class="blog-card skeleton" style="height: 380px"></div>
+                        <div class="blog-card skeleton" style="height: 380px"></div>
+                    </div>
+                    
+                    <!-- Empty State -->
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">📝</div>
+                        <p class="empty-state-text">Статей поки немає</p>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div id="pagination" class="pagination"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -57,16 +209,172 @@
 
     <script src="assets/js/app.js"></script>
     <script>
-        async function loadBlog() {
+        // State
+        let currentCategory = HAL.getUrlParam('category') || '';
+        let currentPage = parseInt(HAL.getUrlParam('page')) || 1;
+        let totalPages = 1;
+        let categoriesData = [];
+
+        // Load categories
+        async function loadCategories() {
             try {
-                const data = await HAL.api.get('/blog');
-                const grid = document.getElementById('blog-grid');
-                grid.innerHTML = data.posts.map(HAL.renderBlogCard).join('');
+                const categories = await HAL.api.get('/blog/categories');
+                categoriesData = categories;
+                renderCategoryTree(categories);
             } catch (error) {
-                console.error('Failed to load blog:', error);
+                console.error('Failed to load categories:', error);
             }
         }
 
+        // Render category tree
+        function renderCategoryTree(categories) {
+            const container = document.getElementById('categories-tree');
+            const lang = HAL.state.language;
+            
+            let html = `
+                <li>
+                    <a href="javascript:void(0)" class="category-link ${!currentCategory ? 'active' : ''}" onclick="selectCategory('')">
+                        <span>Всі статті</span>
+                    </a>
+                </li>
+            `;
+            
+            categories.forEach(cat => {
+                const name = lang === 'uk' ? cat.nameUk : cat.nameRu;
+                const isActive = currentCategory == cat.id || currentCategory == cat.slug;
+                const hasChildren = cat.children && cat.children.length > 0;
+                
+                html += `
+                    <li>
+                        <a href="javascript:void(0)" class="category-link ${isActive ? 'active' : ''}" onclick="selectCategory('${cat.id}')">
+                            <span>${name}</span>
+                            <span class="count">${cat.count}</span>
+                        </a>
+                        ${hasChildren ? renderSubcategories(cat.children, lang) : ''}
+                    </li>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function renderSubcategories(children, lang) {
+            let html = '<ul class="subcategories">';
+            children.forEach(sub => {
+                const name = lang === 'uk' ? sub.nameUk : sub.nameRu;
+                const isActive = currentCategory == sub.id || currentCategory == sub.slug;
+                html += `
+                    <li>
+                        <a href="javascript:void(0)" class="category-link ${isActive ? 'active' : ''}" onclick="selectCategory('${sub.id}')">
+                            <span>${name}</span>
+                            <span class="count">${sub.count}</span>
+                        </a>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        // Selection handler
+        function selectCategory(id) {
+            currentCategory = id;
+            currentPage = 1;
+            updateUrl();
+            loadBlog();
+            renderCategoryTree(categoriesData);
+        }
+
+        // Load blog posts
+        async function loadBlog() {
+            const grid = document.getElementById('blog-grid');
+            const emptyState = document.getElementById('empty-state');
+            
+            grid.innerHTML = `
+                <div class="blog-card skeleton" style="height: 380px"></div>
+                <div class="blog-card skeleton" style="height: 380px"></div>
+                <div class="blog-card skeleton" style="height: 380px"></div>
+            `;
+            emptyState.style.display = 'none';
+            
+            try {
+                let url = `/blog?limit=12&page=${currentPage}`;
+                if (currentCategory) url += `&category=${currentCategory}`;
+                
+                const data = await HAL.api.get(url);
+                totalPages = data.pages;
+                
+                if (data.posts.length > 0) {
+                    grid.innerHTML = data.posts.map(HAL.renderBlogCard).join('');
+                    grid.style.display = 'grid';
+                    emptyState.style.display = 'none';
+                    renderPagination();
+                } else {
+                    grid.innerHTML = '';
+                    grid.style.display = 'none';
+                    emptyState.style.display = 'block';
+                    document.getElementById('pagination').innerHTML = '';
+                }
+            } catch (error) {
+                console.error('Failed to load blog:', error);
+                grid.innerHTML = '<p style="padding: 2rem; text-align: center; color: var(--text-gray)">Помилка завантаження</p>';
+            }
+        }
+
+        // Pagination
+        function renderPagination() {
+            const container = document.getElementById('pagination');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+            
+            for (let i = 1; i <= Math.min(totalPages, 5); i++) {
+                html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            
+            if (totalPages > 5) {
+                html += `<span style="padding: 0 0.5rem">...</span>`;
+                html += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
+            
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            updateUrl();
+            loadBlog();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        // Update URL
+        function updateUrl() {
+            const params = new URLSearchParams();
+            if (currentCategory) params.set('category', currentCategory);
+            if (currentPage > 1) params.set('page', currentPage);
+            
+            const newUrl = '/blog' + (params.toString() ? '?' + params.toString() : '');
+            window.history.pushState({}, '', newUrl);
+        }
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', () => {
+            currentCategory = HAL.getUrlParam('category') || '';
+            currentPage = parseInt(HAL.getUrlParam('page')) || 1;
+            loadBlog();
+            renderCategoryTree(categoriesData);
+        });
+
+        // Initialize
+        loadCategories();
         loadBlog();
     </script>
 </body>

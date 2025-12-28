@@ -6,6 +6,206 @@
     <title>Пошук - HAL</title>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="assets/css/style.css">
+    <style>
+        .search-layout {
+            display: grid;
+            grid-template-columns: 280px 1fr;
+            gap: 2rem;
+        }
+        
+        .search-sidebar {
+            background: var(--bg-white);
+            border-radius: var(--radius-lg);
+            padding: 1.5rem;
+            box-shadow: var(--shadow);
+            height: fit-content;
+            position: sticky;
+            top: 90px;
+        }
+        
+        .sidebar-title {
+            font-size: 1rem;
+            font-weight: 600;
+            margin-bottom: 1rem;
+            color: var(--text-dark);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        
+        .category-tree {
+            list-style: none;
+            margin-bottom: 1.5rem;
+        }
+        
+        .category-tree li {
+            margin-bottom: 0.25rem;
+        }
+        
+        .category-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0.75rem;
+            border-radius: var(--radius);
+            color: var(--text-gray);
+            font-size: 0.875rem;
+            transition: all 0.2s;
+        }
+        
+        .category-link:hover {
+            background: var(--bg-gray);
+            color: var(--text-dark);
+        }
+        
+        .category-link.active {
+            background: linear-gradient(to right, var(--primary), var(--secondary));
+            color: white;
+        }
+        
+        .category-link .count {
+            background: var(--bg-gray);
+            padding: 0.125rem 0.5rem;
+            border-radius: 9999px;
+            font-size: 0.75rem;
+        }
+        
+        .category-link.active .count {
+            background: rgba(255,255,255,0.2);
+        }
+        
+        .subcategories {
+            list-style: none;
+            margin-left: 1rem;
+            margin-top: 0.25rem;
+        }
+        
+        .subcategories .category-link {
+            padding: 0.375rem 0.75rem;
+            font-size: 0.8125rem;
+        }
+        
+        .filter-section {
+            border-top: 1px solid var(--border);
+            padding-top: 1rem;
+            margin-bottom: 1rem;
+        }
+        
+        .filter-label {
+            font-size: 0.875rem;
+            font-weight: 500;
+            margin-bottom: 0.5rem;
+            color: var(--text-dark);
+        }
+        
+        .city-list {
+            list-style: none;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .city-link {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.375rem 0.75rem;
+            border-radius: var(--radius);
+            color: var(--text-gray);
+            font-size: 0.8125rem;
+            transition: all 0.2s;
+        }
+        
+        .city-link:hover {
+            background: var(--bg-gray);
+        }
+        
+        .city-link.active {
+            background: var(--primary);
+            color: white;
+        }
+        
+        .clear-filters {
+            display: block;
+            width: 100%;
+            padding: 0.5rem;
+            text-align: center;
+            color: var(--primary);
+            font-size: 0.875rem;
+            margin-top: 1rem;
+            cursor: pointer;
+        }
+        
+        .clear-filters:hover {
+            text-decoration: underline;
+        }
+        
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+        }
+        
+        .pagination-btn {
+            min-width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        
+        .pagination-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        
+        .pagination-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+        
+        .pagination-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+        
+        @media (max-width: 1024px) {
+            .search-layout {
+                grid-template-columns: 1fr;
+            }
+            
+            .search-sidebar {
+                position: static;
+                display: none;
+            }
+            
+            .search-sidebar.open {
+                display: block;
+            }
+            
+            .toggle-sidebar-btn {
+                display: flex;
+            }
+        }
+        
+        .toggle-sidebar-btn {
+            display: none;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            background: var(--bg-white);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            cursor: pointer;
+            margin-bottom: 1rem;
+        }
+    </style>
 </head>
 <body>
     <!-- Header -->
@@ -38,17 +238,14 @@
         <div class="container">
             <!-- Search Box -->
             <div class="search-box">
-                <h1 class="section-title mb-3" data-i18n="nav.search">Пошук</h1>
+                <h1 class="section-title mb-3" data-i18n="nav.search">Пошук компаній</h1>
                 
                 <form id="search-form" class="search-form">
-                    <input type="text" id="search-input" class="search-input" placeholder="Шукати послугу...">
+                    <input type="text" id="search-input" class="search-input" placeholder="Шукати послугу або компанію...">
                     <button type="submit" class="btn btn-primary">Шукати</button>
                 </form>
                 
                 <div class="filters-row">
-                    <select id="category-filter" class="filter-select">
-                        <option value="">Всі категорії</option>
-                    </select>
                     <select id="sort-filter" class="filter-select">
                         <option value="recent">Нові</option>
                         <option value="popular">Популярні</option>
@@ -57,19 +254,52 @@
                 </div>
             </div>
 
-            <!-- Results -->
-            <div class="results-count">
-                <span data-i18n="search.found">Знайдено</span>: <span id="total-count">0</span> <span data-i18n="search.companies">компаній</span>
-            </div>
+            <!-- Mobile toggle -->
+            <button class="toggle-sidebar-btn" onclick="toggleSidebar()">
+                <span>📁</span> Фільтри та категорії
+            </button>
 
-            <div id="results-grid" class="cards-grid">
-                <!-- Results will be loaded here -->
-            </div>
+            <div class="search-layout">
+                <!-- Sidebar -->
+                <aside class="search-sidebar" id="sidebar">
+                    <div class="sidebar-title">📁 Категорії</div>
+                    <ul class="category-tree" id="categories-tree">
+                        <li class="skeleton" style="height: 30px; margin-bottom: 0.5rem"></li>
+                        <li class="skeleton" style="height: 30px; margin-bottom: 0.5rem"></li>
+                        <li class="skeleton" style="height: 30px; margin-bottom: 0.5rem"></li>
+                    </ul>
+                    
+                    <div class="filter-section">
+                        <div class="filter-label">📍 Місто</div>
+                        <ul class="city-list" id="cities-list">
+                            <li class="skeleton" style="height: 24px; margin-bottom: 0.25rem"></li>
+                            <li class="skeleton" style="height: 24px; margin-bottom: 0.25rem"></li>
+                        </ul>
+                    </div>
+                    
+                    <a href="/search" class="clear-filters" id="clear-filters" style="display:none">✕ Скинути фільтри</a>
+                </aside>
 
-            <!-- Empty State -->
-            <div id="empty-state" class="empty-state" style="display: none;">
-                <div class="empty-state-icon">🔍</div>
-                <p class="empty-state-text" data-i18n="search.nothingFound">Нічого не знайдено</p>
+                <!-- Results -->
+                <div class="search-results">
+                    <div class="results-count">
+                        <span data-i18n="search.found">Знайдено</span>: <strong id="total-count">0</strong> <span data-i18n="search.companies">компаній</span>
+                    </div>
+
+                    <div id="results-grid" class="cards-grid">
+                        <!-- Results will be loaded here -->
+                    </div>
+
+                    <!-- Empty State -->
+                    <div id="empty-state" class="empty-state" style="display: none;">
+                        <div class="empty-state-icon">🔍</div>
+                        <p class="empty-state-text" data-i18n="search.nothingFound">Нічого не знайдено</p>
+                        <a href="/search" class="btn btn-outline" style="margin-top: 1rem">Скинути фільтри</a>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div id="pagination" class="pagination"></div>
+                </div>
             </div>
         </div>
     </main>
@@ -107,26 +337,142 @@
 
     <script src="assets/js/app.js"></script>
     <script>
+        // State
         let currentCategory = HAL.getUrlParam('category') || '';
+        let currentCity = HAL.getUrlParam('city') || '';
         let currentSearch = HAL.getUrlParam('q') || '';
         let currentSort = HAL.getUrlParam('sort') || 'recent';
+        let currentPage = parseInt(HAL.getUrlParam('page')) || 1;
+        let totalPages = 1;
+        let categoriesData = [];
 
-        // Load categories for filter
+        // Toggle sidebar on mobile
+        function toggleSidebar() {
+            document.getElementById('sidebar').classList.toggle('open');
+        }
+
+        // Load hierarchical categories
         async function loadCategories() {
             try {
-                const categories = await HAL.api.get('/categories');
-                const select = document.getElementById('category-filter');
-                
-                categories.forEach(cat => {
-                    const name = HAL.state.language === 'uk' ? cat.nameUk : cat.nameRu;
-                    const option = document.createElement('option');
-                    option.value = cat.id;
-                    option.textContent = name;
-                    if (cat.id === currentCategory) option.selected = true;
-                    select.appendChild(option);
-                });
+                const categories = await HAL.api.get('/categories?includeEmpty=true');
+                categoriesData = categories;
+                renderCategoryTree(categories);
             } catch (error) {
                 console.error('Failed to load categories:', error);
+            }
+        }
+
+        // Render category tree
+        function renderCategoryTree(categories) {
+            const container = document.getElementById('categories-tree');
+            const lang = HAL.state.language;
+            
+            let html = `
+                <li>
+                    <a href="javascript:void(0)" class="category-link ${!currentCategory ? 'active' : ''}" onclick="selectCategory('')">
+                        <span>Всі категорії</span>
+                    </a>
+                </li>
+            `;
+            
+            categories.forEach(cat => {
+                const name = lang === 'uk' ? cat.nameUk : cat.nameRu;
+                const isActive = currentCategory == cat.id || currentCategory == cat.slug;
+                const hasChildren = cat.children && cat.children.length > 0;
+                
+                html += `
+                    <li>
+                        <a href="javascript:void(0)" class="category-link ${isActive ? 'active' : ''}" onclick="selectCategory('${cat.id}')">
+                            <span>${getIconEmoji(cat.icon)} ${name}</span>
+                            <span class="count">${cat.count}</span>
+                        </a>
+                        ${hasChildren ? renderSubcategories(cat.children, lang) : ''}
+                    </li>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+        
+        function renderSubcategories(children, lang) {
+            let html = '<ul class="subcategories">';
+            children.forEach(sub => {
+                const name = lang === 'uk' ? sub.nameUk : sub.nameRu;
+                const isActive = currentCategory == sub.id || currentCategory == sub.slug;
+                html += `
+                    <li>
+                        <a href="javascript:void(0)" class="category-link ${isActive ? 'active' : ''}" onclick="selectCategory('${sub.id}')">
+                            <span>${name}</span>
+                            <span class="count">${sub.count}</span>
+                        </a>
+                    </li>
+                `;
+            });
+            html += '</ul>';
+            return html;
+        }
+
+        // Load cities
+        async function loadCities() {
+            try {
+                const cities = await HAL.api.get('/cities');
+                renderCities(cities);
+            } catch (error) {
+                console.error('Failed to load cities:', error);
+            }
+        }
+
+        function renderCities(cities) {
+            const container = document.getElementById('cities-list');
+            
+            let html = `
+                <li>
+                    <a href="javascript:void(0)" class="city-link ${!currentCity ? 'active' : ''}" onclick="selectCity('')">
+                        <span>Всі міста</span>
+                    </a>
+                </li>
+            `;
+            
+            cities.forEach(city => {
+                const isActive = currentCity === city.city;
+                html += `
+                    <li>
+                        <a href="javascript:void(0)" class="city-link ${isActive ? 'active' : ''}" onclick="selectCity('${city.city}')">
+                            <span>${city.city}</span>
+                            <span class="count">${city.count}</span>
+                        </a>
+                    </li>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Selection handlers
+        function selectCategory(id) {
+            currentCategory = id;
+            currentPage = 1;
+            updateUrl();
+            loadCompanies();
+            renderCategoryTree(categoriesData);
+            updateClearButton();
+        }
+
+        function selectCity(city) {
+            currentCity = city;
+            currentPage = 1;
+            updateUrl();
+            loadCompanies();
+            loadCities();
+            updateClearButton();
+        }
+
+        function updateClearButton() {
+            const btn = document.getElementById('clear-filters');
+            if (currentCategory || currentCity || currentSearch) {
+                btn.style.display = 'block';
+            } else {
+                btn.style.display = 'none';
             }
         }
 
@@ -140,65 +486,153 @@
             emptyState.style.display = 'none';
             
             try {
-                let url = `/companies?limit=50&sort=${currentSort}`;
+                let url = `/companies?limit=20&page=${currentPage}&sort=${currentSort}`;
                 if (currentCategory) url += `&category=${currentCategory}`;
+                if (currentCity) url += `&city=${encodeURIComponent(currentCity)}`;
                 if (currentSearch) url += `&search=${encodeURIComponent(currentSearch)}`;
                 
                 const data = await HAL.api.get(url);
                 
                 countEl.textContent = data.total;
+                totalPages = data.pages;
                 
                 if (data.companies.length > 0) {
                     grid.innerHTML = data.companies.map(HAL.renderCompanyCard).join('');
                     grid.style.display = 'grid';
                     emptyState.style.display = 'none';
+                    renderPagination();
                 } else {
                     grid.innerHTML = '';
                     grid.style.display = 'none';
                     emptyState.style.display = 'block';
+                    document.getElementById('pagination').innerHTML = '';
                 }
             } catch (error) {
                 console.error('Failed to load companies:', error);
-                grid.innerHTML = '<p>Помилка завантаження</p>';
+                grid.innerHTML = '<p style="padding: 2rem; text-align: center; color: var(--text-gray)">Помилка завантаження</p>';
             }
+        }
+
+        // Pagination
+        function renderPagination() {
+            const container = document.getElementById('pagination');
+            if (totalPages <= 1) {
+                container.innerHTML = '';
+                return;
+            }
+            
+            let html = '';
+            
+            // Prev button
+            html += `<button class="pagination-btn" onclick="goToPage(${currentPage - 1})" ${currentPage === 1 ? 'disabled' : ''}>←</button>`;
+            
+            // Page numbers
+            const maxVisible = 5;
+            let startPage = Math.max(1, currentPage - Math.floor(maxVisible / 2));
+            let endPage = Math.min(totalPages, startPage + maxVisible - 1);
+            
+            if (endPage - startPage < maxVisible - 1) {
+                startPage = Math.max(1, endPage - maxVisible + 1);
+            }
+            
+            if (startPage > 1) {
+                html += `<button class="pagination-btn" onclick="goToPage(1)">1</button>`;
+                if (startPage > 2) html += `<span style="padding: 0 0.5rem">...</span>`;
+            }
+            
+            for (let i = startPage; i <= endPage; i++) {
+                html += `<button class="pagination-btn ${i === currentPage ? 'active' : ''}" onclick="goToPage(${i})">${i}</button>`;
+            }
+            
+            if (endPage < totalPages) {
+                if (endPage < totalPages - 1) html += `<span style="padding: 0 0.5rem">...</span>`;
+                html += `<button class="pagination-btn" onclick="goToPage(${totalPages})">${totalPages}</button>`;
+            }
+            
+            // Next button
+            html += `<button class="pagination-btn" onclick="goToPage(${currentPage + 1})" ${currentPage === totalPages ? 'disabled' : ''}>→</button>`;
+            
+            container.innerHTML = html;
+        }
+
+        function goToPage(page) {
+            if (page < 1 || page > totalPages) return;
+            currentPage = page;
+            updateUrl();
+            loadCompanies();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
         }
 
         // Update URL
         function updateUrl() {
             const params = new URLSearchParams();
             if (currentCategory) params.set('category', currentCategory);
+            if (currentCity) params.set('city', currentCity);
             if (currentSearch) params.set('q', currentSearch);
             if (currentSort !== 'recent') params.set('sort', currentSort);
+            if (currentPage > 1) params.set('page', currentPage);
             
             const newUrl = '/search' + (params.toString() ? '?' + params.toString() : '');
             window.history.pushState({}, '', newUrl);
+        }
+
+        // Icon helper
+        function getIconEmoji(icon) {
+            const icons = {
+                utensils: '🍽️',
+                dumbbell: '💪',
+                sparkles: '✨',
+                palette: '🎨',
+                home: '🏠',
+                car: '🚗',
+                hammer: '🔨',
+                'more-horizontal': '📦',
+                folder: '📁'
+            };
+            return icons[icon] || '📁';
         }
 
         // Event listeners
         document.getElementById('search-form').addEventListener('submit', (e) => {
             e.preventDefault();
             currentSearch = document.getElementById('search-input').value;
+            currentPage = 1;
             updateUrl();
             loadCompanies();
-        });
-
-        document.getElementById('category-filter').addEventListener('change', (e) => {
-            currentCategory = e.target.value;
-            updateUrl();
-            loadCompanies();
+            updateClearButton();
         });
 
         document.getElementById('sort-filter').addEventListener('change', (e) => {
             currentSort = e.target.value;
+            currentPage = 1;
             updateUrl();
             loadCompanies();
+        });
+
+        // Handle browser back/forward
+        window.addEventListener('popstate', () => {
+            currentCategory = HAL.getUrlParam('category') || '';
+            currentCity = HAL.getUrlParam('city') || '';
+            currentSearch = HAL.getUrlParam('q') || '';
+            currentSort = HAL.getUrlParam('sort') || 'recent';
+            currentPage = parseInt(HAL.getUrlParam('page')) || 1;
+            
+            document.getElementById('search-input').value = currentSearch;
+            document.getElementById('sort-filter').value = currentSort;
+            
+            loadCompanies();
+            renderCategoryTree(categoriesData);
+            loadCities();
+            updateClearButton();
         });
 
         // Initialize
         document.getElementById('search-input').value = currentSearch;
         document.getElementById('sort-filter').value = currentSort;
+        updateClearButton();
         
         loadCategories();
+        loadCities();
         loadCompanies();
     </script>
 </body>
