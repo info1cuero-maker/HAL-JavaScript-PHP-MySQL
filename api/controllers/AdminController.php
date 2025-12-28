@@ -92,11 +92,14 @@ class AdminController {
         $this->requireAdminAccess();
         
         $stmt = $this->db->query("
-            SELECT c.*, COUNT(co.id) as companies_count 
+            SELECT c.*, 
+                   p.name_uk as parent_name,
+                   COUNT(co.id) as companies_count 
             FROM categories c 
+            LEFT JOIN categories p ON c.parent_id = p.id
             LEFT JOIN companies co ON co.category_id = c.id 
             GROUP BY c.id 
-            ORDER BY c.sort_order
+            ORDER BY c.parent_id IS NULL DESC, c.sort_order, c.name_uk
         ");
         Response::json($stmt->fetchAll());
     }
@@ -116,8 +119,8 @@ class AdminController {
         }
         
         $stmt = $this->db->prepare("
-            INSERT INTO categories (slug, name_uk, name_ru, description_uk, description_ru, icon, sort_order) 
-            VALUES (?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO categories (slug, name_uk, name_ru, description_uk, description_ru, icon, sort_order, parent_id) 
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
         ");
         $stmt->execute([
             $data['slug'],
@@ -126,7 +129,8 @@ class AdminController {
             $data['description_uk'] ?? null,
             $data['description_ru'] ?? null,
             $data['icon'] ?? 'folder',
-            $data['sort_order'] ?? 0
+            $data['sort_order'] ?? 0,
+            $data['parent_id'] ?? null
         ]);
         
         $id = $this->db->lastInsertId();
@@ -145,7 +149,7 @@ class AdminController {
         $fields = [];
         $params = [];
         
-        foreach (['slug', 'name_uk', 'name_ru', 'description_uk', 'description_ru', 'icon', 'sort_order', 'is_active'] as $field) {
+        foreach (['slug', 'name_uk', 'name_ru', 'description_uk', 'description_ru', 'icon', 'sort_order', 'is_active', 'parent_id'] as $field) {
             if (isset($data[$field])) {
                 $fields[] = "$field = ?";
                 $params[] = $data[$field];
