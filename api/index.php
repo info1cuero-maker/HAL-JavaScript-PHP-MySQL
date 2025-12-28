@@ -67,6 +67,9 @@ $routes = [
     // Contact
     'POST contact' => 'controllers/ContactController.php@send',
     
+    // Public page SEO data
+    'GET pages/([a-z-]+)' => 'controllers/HomeController.php@getPageSeo',
+    
     // ==================== ADMIN ROUTES ====================
     
     // Dashboard
