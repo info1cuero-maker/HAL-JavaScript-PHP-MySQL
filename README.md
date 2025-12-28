@@ -1,276 +1,214 @@
-# HAL.in.ua Clone
+# HAL - Каталог компаній та послуг України
 
-<p align="center">
-  <img src="https://images.unsplash.com/photo-1556740758-90de374c12ad?w=800&h=400&fit=crop" alt="HAL Banner" width="100%">
-</p>
+Клон сайту hal.in.ua на PHP + MySQL + Vanilla JavaScript.
 
-<p align="center">
-  <strong>🇺🇦 Каталог компаній та послуг України</strong><br>
-  <em>Клон сайту hal.in.ua на PHP + MySQL + Vanilla JavaScript</em>
-</p>
+## Технологічний стек
 
-<p align="center">
-  <a href="#features">Функції</a> •
-  <a href="#demo">Демо</a> •
-  <a href="#installation">Встановлення</a> •
-  <a href="#api">API</a> •
-  <a href="#license">Ліцензія</a>
-</p>
+- **Backend**: PHP 8.x
+- **Database**: MySQL / MariaDB
+- **Frontend**: Vanilla JavaScript, HTML5, CSS3
+- **Авторизація**: JWT токени
 
----
+## Вимоги
 
-## ✨ Features
-
-- 🏢 **Каталог компаній** - перегляд, пошук, фільтрація
-- 🔍 **Розумний пошук** - по категоріях з динамічними URL
-- 🖼️ **Галерея зображень** - до 10 фото на компанію
-- 🗺️ **Карта** - відображення локації компанії (OpenStreetMap)
-- ⭐ **Відгуки та рейтинги** - система оцінювання компаній
-- 👤 **Особистий кабінет** - статистика переглядів та відгуків
-- 📝 **Блог** - статті та новини
-- 🌐 **Двомовність** - українська та російська мови
-- 📱 **Адаптивний дизайн** - працює на всіх пристроях
-
-## 🛠️ Tech Stack
-
-| Backend | Frontend | Database |
-|---------|----------|----------|
-| PHP 7.4+ | Vanilla JavaScript | MySQL 5.7+ |
-| REST API | HTML5 / CSS3 | MariaDB 10.3+ |
-| JWT Auth | Responsive Design | |
-
-## 📦 Installation
-
-### Вимоги
-- PHP 7.4 або вище (рекомендується 8.0+)
+- PHP 8.0 або новіше
 - MySQL 5.7+ або MariaDB 10.3+
 - Apache з mod_rewrite або Nginx
-- Composer (опціонально)
+- PHP розширення: pdo_mysql, json, mbstring
 
-### Крок 1: Клонування репозиторію
+## Встановлення
+
+### 1. Клонування репозиторію
+
 ```bash
-git clone https://github.com/yourusername/hal-clone.git
+git clone https://github.com/your-username/hal-clone.git
 cd hal-clone
 ```
 
-### Крок 2: Налаштування бази даних
+### 2. Налаштування бази даних
+
+1. Створіть базу даних MySQL:
 ```sql
 CREATE DATABASE hal_db CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
 ```
 
+2. Імпортуйте схему:
 ```bash
-mysql -u your_username -p hal_db < api/database/schema.sql
+mysql -u root -p hal_db < api/database/schema.sql
 ```
 
-### Крок 3: Конфігурація
+### 3. Налаштування конфігурації
+
 Відредагуйте файл `api/config/database.php`:
+
 ```php
 private $host = 'localhost';
 private $db_name = 'hal_db';
-private $username = 'your_username';
-private $password = 'your_password';
+private $username = 'your_mysql_user';
+private $password = 'your_mysql_password';
 ```
 
-### Крок 4: Наповнення даними (опціонально)
-```bash
-cd api/database
-php seed.php
-```
-
-### Крок 5: Налаштування веб-сервера
+### 4. Налаштування веб-сервера
 
 #### Apache
-Переконайтеся, що mod_rewrite увімкнено:
-```bash
-sudo a2enmod rewrite
-sudo systemctl restart apache2
+
+Переконайтеся, що mod_rewrite увімкнено. Файл `.htaccess` вже налаштований.
+
+```apache
+<VirtualHost *:80>
+    DocumentRoot /var/www/hal
+    ServerName hal.local
+    
+    <Directory /var/www/hal>
+        AllowOverride All
+        Require all granted
+    </Directory>
+</VirtualHost>
 ```
 
 #### Nginx
+
 ```nginx
 server {
     listen 80;
-    server_name yourdomain.com;
-    root /var/www/hal-clone;
-    index index.html;
+    server_name hal.local;
+    root /var/www/hal;
+    index index.html index.php;
 
-    location /api {
-        try_files $uri $uri/ /api/index.php?$query_string;
+    location / {
+        try_files $uri $uri/ @rewrite;
+    }
+
+    location @rewrite {
+        rewrite ^/api/(.*)$ /api/index.php last;
+        rewrite ^/search$ /search.html last;
+        rewrite ^/company/(.*)$ /company.html last;
+        rewrite ^/blog$ /blog.html last;
+        rewrite ^/blog/(.*)$ /blog-post.html last;
+        rewrite ^/contacts$ /contacts.html last;
+        rewrite ^/about$ /about.html last;
+        rewrite ^/login$ /login.html last;
+        rewrite ^/register$ /register.html last;
+        rewrite ^/dashboard$ /dashboard.html last;
+        rewrite ^/admin$ /admin.html last;
     }
 
     location ~ \.php$ {
-        fastcgi_pass unix:/var/run/php/php8.0-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
         fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
         include fastcgi_params;
-    }
-
-    location / {
-        try_files $uri $uri.html $uri/ =404;
     }
 }
 ```
 
-## 📂 Project Structure
+### 5. Створення директорії для завантажень
+
+```bash
+mkdir -p api/uploads/companies
+chmod 755 api/uploads/companies
+```
+
+## Структура проекту
 
 ```
-hal-clone/
-├── api/                      # PHP Backend
+/
+├── api/
 │   ├── config/
-│   │   ├── config.php       # App configuration
-│   │   └── database.php     # Database connection
+│   │   ├── config.php      # Глобальна конфігурація
+│   │   └── database.php    # Підключення до БД
 │   ├── controllers/
+│   │   ├── AdminController.php
 │   │   ├── AuthController.php
-│   │   ├── CompanyController.php
-│   │   ├── CategoryController.php
-│   │   ├── ReviewController.php
 │   │   ├── BlogController.php
-│   │   ├── UserController.php
-│   │   └── ContactController.php
+│   │   ├── CategoryController.php
+│   │   ├── CompanyController.php
+│   │   ├── ContactController.php
+│   │   ├── HomeController.php
+│   │   ├── ReviewController.php
+│   │   └── UserController.php
 │   ├── database/
-│   │   ├── schema.sql       # Database schema
-│   │   └── seed.php         # Sample data
+│   │   ├── schema.sql      # Схема БД
+│   │   └── seed.php        # Тестові дані
 │   ├── helpers/
-│   │   ├── jwt.php          # JWT authentication
-│   │   └── response.php     # JSON responses
-│   ├── index.php            # API entry point
-│   └── .htaccess
+│   │   ├── jwt.php         # JWT авторизація
+│   │   └── response.php    # JSON відповіді
+│   └── index.php           # API роутер
 ├── assets/
 │   ├── css/
-│   │   └── style.css        # Main stylesheet
+│   │   ├── style.css       # Основні стилі
+│   │   └── admin.css       # Стилі адмін-панелі
 │   └── js/
-│       └── app.js           # Main JavaScript
-├── index.html               # Homepage
-├── search.html              # Search page
-├── company.html             # Company detail page
-├── blog.html                # Blog listing
-├── blog-post.html           # Blog post page
-├── contacts.html            # Contact page
-├── about.html               # About page
-├── login.html               # Login page
-├── register.html            # Registration page
-├── dashboard.html           # User dashboard
-├── add-business.html        # Add company form
-├── .htaccess                # Apache routing
-├── .gitignore
-├── LICENSE
-└── README.md
+│       ├── app.js          # Головний JS
+│       └── admin.js        # JS адмін-панелі
+├── index.html              # Головна сторінка
+├── search.html             # Пошук компаній
+├── company.html            # Сторінка компанії
+├── blog.html               # Блог
+├── blog-post.html          # Стаття блогу
+├── contacts.html           # Контакти
+├── about.html              # Про нас
+├── login.html              # Вхід
+├── register.html           # Реєстрація
+├── dashboard.html          # Кабінет користувача
+├── admin.html              # Адмін-панель
+├── add-business.html       # Додати компанію
+└── .htaccess               # Налаштування Apache
 ```
 
-## 🔌 API Reference
+## API Endpoints
 
-### Companies
+### Публічні
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/companies` | Get all companies |
-| GET | `/api/companies?category=cafe` | Filter by category |
-| GET | `/api/companies?search=торт` | Search companies |
-| GET | `/api/companies/{id}` | Get company details |
-| POST | `/api/companies` | Create company (auth required) |
-| PUT | `/api/companies/{id}` | Update company (auth required) |
-| DELETE | `/api/companies/{id}` | Delete company (auth required) |
+| Метод | URL | Опис |
+|-------|-----|------|
+| GET | /api/companies | Список компаній |
+| GET | /api/companies/{id} | Деталі компанії |
+| GET | /api/categories | Список категорій |
+| GET | /api/cities | Список міст |
+| GET | /api/blog | Список статей |
+| GET | /api/blog/{id} | Стаття блогу |
+| GET | /api/blog/categories | Категорії блогу |
+| POST | /api/auth/register | Реєстрація |
+| POST | /api/auth/login | Вхід |
+| POST | /api/contact | Форма зворотнього зв'язку |
 
-### Authentication
+### Адмін-панель (потрібна авторизація)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/auth/register` | Register new user |
-| POST | `/api/auth/login` | Login user |
-| GET | `/api/auth/me` | Get current user (auth required) |
+| Метод | URL | Опис |
+|-------|-----|------|
+| GET | /api/admin/dashboard | Статистика |
+| GET/POST/PUT/DELETE | /api/admin/categories | CRUD категорій |
+| GET/POST/PUT/DELETE | /api/admin/companies | CRUD компаній |
+| GET/POST/PUT/DELETE | /api/admin/blog | CRUD статей |
+| GET/PUT/DELETE | /api/admin/reviews | Модерація відгуків |
+| GET/PUT | /api/admin/users | Управління користувачами |
+| GET/PUT | /api/admin/settings | Налаштування |
 
-### Categories
+## Ролі користувачів
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/categories` | Get all categories |
+- **admin** - Повний доступ до CMS
+- **analyst** - Тільки перегляд в CMS
+- **user** - Може редагувати тільки свої компанії
 
-### Reviews
+## Тестовий доступ
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/companies/{id}/reviews` | Get company reviews |
-| POST | `/api/companies/{id}/reviews` | Add review (auth required) |
+Після імпорту схеми БД, створюються тестові користувачі:
 
-### Blog
+- **Admin**: admin@hal.ua / admin123
+- **Analyst**: analyst@hal.ua / admin123
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/api/blog` | Get all posts |
-| GET | `/api/blog/{id}` | Get post by ID |
+## Особливості
 
-### Contact
+- 🌐 Двомовність (Українська/Російська)
+- 📱 Адаптивний дизайн
+- 🔐 JWT авторизація
+- 📁 Ієрархічні категорії з підкатегоріями
+- 📍 Фільтрація по містах
+- 📊 Пагінація для великих обсягів даних
+- ⭐ Модерація відгуків
+- 📝 CRUD для контенту
+- 🖼️ Завантаження зображень (WebP)
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| POST | `/api/contact` | Send contact message |
+## Ліцензія
 
-## 🌍 Internationalization
-
-The application supports two languages:
-- 🇺🇦 Ukrainian (default)
-- 🇷🇺 Russian
-
-Language can be switched using the language toggle in the header. User preference is saved in localStorage.
-
-## 🔐 Security
-
-Before deploying to production:
-
-1. **Change JWT Secret** in `api/config/config.php`:
-```php
-define('JWT_SECRET', 'your-very-long-random-secret-key');
-```
-
-2. **Secure database credentials** - use environment variables if possible
-
-3. **Disable error display** in production:
-```php
-ini_set('display_errors', 0);
-```
-
-4. **Use HTTPS** - enable SSL certificate
-
-## 📸 Screenshots
-
-<details>
-<summary>Click to view screenshots</summary>
-
-### Homepage
-![Homepage](https://via.placeholder.com/800x400?text=Homepage)
-
-### Search Page
-![Search](https://via.placeholder.com/800x400?text=Search+Page)
-
-### Company Detail
-![Company](https://via.placeholder.com/800x400?text=Company+Detail)
-
-### Dashboard
-![Dashboard](https://via.placeholder.com/800x400?text=Dashboard)
-
-</details>
-
-## 🤝 Contributing
-
-Contributions are welcome! Please feel free to submit a Pull Request.
-
-1. Fork the repository
-2. Create your feature branch (`git checkout -b feature/AmazingFeature`)
-3. Commit your changes (`git commit -m 'Add some AmazingFeature'`)
-4. Push to the branch (`git push origin feature/AmazingFeature`)
-5. Open a Pull Request
-
-## 📄 License
-
-This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
-
-## 🙏 Acknowledgments
-
-- Original design inspiration from [hal.in.ua](https://hal.in.ua)
-- Icons from [Lucide Icons](https://lucide.dev)
-- Images from [Unsplash](https://unsplash.com)
-
----
-
-<p align="center">
-  Made with ❤️ in Ukraine 🇺🇦
-</p>
+MIT
