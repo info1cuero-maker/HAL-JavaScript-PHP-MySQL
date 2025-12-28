@@ -258,6 +258,150 @@
         }
 
         loadDashboard();
+        
+        // Edit company modal
+        async function openEditCompanyModal(companyId) {
+            try {
+                const company = await HAL.api.get(`/users/me/companies/${companyId}`);
+                
+                // Create modal
+                const modal = document.createElement('div');
+                modal.id = 'edit-modal';
+                modal.innerHTML = `
+                    <div class="modal-overlay" onclick="closeEditModal()"></div>
+                    <div class="modal-content" style="max-width: 600px; background: white; border-radius: var(--radius-lg); padding: 2rem; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1001; max-height: 90vh; overflow-y: auto;">
+                        <h2 style="margin-bottom: 1.5rem">Редагувати компанію</h2>
+                        <form id="edit-company-form" onsubmit="saveMyCompany(event, ${companyId})">
+                            <div class="form-group mb-3">
+                                <label class="form-label">Назва (UA) *</label>
+                                <input type="text" class="form-input" name="name" value="${company.name}" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Назва (RU) *</label>
+                                <input type="text" class="form-input" name="name_ru" value="${company.name_ru || ''}">
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Опис (UA) *</label>
+                                <textarea class="form-input" name="description" rows="3" required>${company.description}</textarea>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Опис (RU)</label>
+                                <textarea class="form-input" name="description_ru" rows="3">${company.description_ru || ''}</textarea>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Місто *</label>
+                                <input type="text" class="form-input" name="city" value="${company.city}" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Адреса *</label>
+                                <input type="text" class="form-input" name="address" value="${company.address}" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Телефон *</label>
+                                <input type="tel" class="form-input" name="phone" value="${company.phone}" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Email *</label>
+                                <input type="email" class="form-input" name="email" value="${company.email}" required>
+                            </div>
+                            <div class="form-group mb-3">
+                                <label class="form-label">Веб-сайт</label>
+                                <input type="url" class="form-input" name="website" value="${company.website || ''}" placeholder="https://">
+                            </div>
+                            
+                            <div class="form-group mb-3">
+                                <label class="form-label">Зображення (WebP, макс. 10)</label>
+                                <div id="images-grid" style="display: grid; grid-template-columns: repeat(5, 1fr); gap: 0.5rem; margin-top: 0.5rem">
+                                    ${(company.images || []).map(img => `
+                                        <div style="position: relative;" data-id="${img.id}">
+                                            <img src="/uploads/companies/${img.filename}" style="width: 100%; height: 80px; object-fit: cover; border-radius: var(--radius);">
+                                            <button type="button" onclick="deleteMyImage(${img.id})" style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; border: none; border-radius: 50%; width: 20px; height: 20px; cursor: pointer;">×</button>
+                                        </div>
+                                    `).join('')}
+                                    ${(company.images || []).length < 10 ? `
+                                    <label style="display: flex; align-items: center; justify-content: center; height: 80px; border: 2px dashed var(--border); border-radius: var(--radius); cursor: pointer;">
+                                        <input type="file" accept=".webp" style="display:none" onchange="uploadMyImage(${companyId}, this)">
+                                        <span style="font-size: 1.5rem; color: var(--text-gray)">+</span>
+                                    </label>
+                                    ` : ''}
+                                </div>
+                                <small style="color: var(--text-gray)">Тільки формат WebP</small>
+                            </div>
+                            
+                            <div style="display: flex; gap: 1rem; justify-content: flex-end; margin-top: 1.5rem">
+                                <button type="button" class="btn btn-outline" onclick="closeEditModal()">Скасувати</button>
+                                <button type="submit" class="btn btn-primary">Зберегти</button>
+                            </div>
+                        </form>
+                    </div>
+                    <style>
+                        .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 1000; }
+                    </style>
+                `;
+                document.body.appendChild(modal);
+            } catch (error) {
+                HAL.showToast(error.message, 'error');
+            }
+        }
+        
+        function closeEditModal() {
+            document.getElementById('edit-modal')?.remove();
+        }
+        
+        async function saveMyCompany(e, companyId) {
+            e.preventDefault();
+            const data = Object.fromEntries(new FormData(e.target));
+            
+            try {
+                await HAL.api.put(`/users/me/companies/${companyId}`, data);
+                HAL.showToast('Компанію збережено');
+                closeEditModal();
+                loadDashboard();
+            } catch (error) {
+                HAL.showToast(error.message, 'error');
+            }
+        }
+        
+        async function uploadMyImage(companyId, input) {
+            const file = input.files[0];
+            if (!file) return;
+            
+            if (!file.name.endsWith('.webp')) {
+                HAL.showToast('Дозволено тільки WebP формат', 'error');
+                return;
+            }
+            
+            const formData = new FormData();
+            formData.append('image', file);
+            
+            try {
+                const response = await fetch(`/api/users/me/companies/${companyId}/images`, {
+                    method: 'POST',
+                    headers: { 'Authorization': `Bearer ${HAL.state.token}` },
+                    body: formData
+                });
+                
+                if (!response.ok) throw new Error('Upload failed');
+                
+                HAL.showToast('Зображення завантажено');
+                closeEditModal();
+                openEditCompanyModal(companyId);
+            } catch (error) {
+                HAL.showToast(error.message, 'error');
+            }
+        }
+        
+        async function deleteMyImage(imageId) {
+            if (!confirm('Видалити це зображення?')) return;
+            
+            try {
+                await HAL.api.delete(`/users/me/images/${imageId}`);
+                document.querySelector(`[data-id="${imageId}"]`)?.remove();
+                HAL.showToast('Зображення видалено');
+            } catch (error) {
+                HAL.showToast(error.message, 'error');
+            }
+        }
     </script>
 </body>
 </html>
