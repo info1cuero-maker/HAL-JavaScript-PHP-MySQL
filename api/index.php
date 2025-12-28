@@ -34,6 +34,13 @@ $routes = [
     
     // Categories (public)
     'GET categories' => 'controllers/CategoryController.php@getAll',
+    'GET categories/(\w+)' => 'controllers/CategoryController.php@getById',
+    
+    // Cities (public)
+    'GET cities' => 'controllers/CompanyController.php@getCities',
+    
+    // Blog categories (public)
+    'GET blog/categories' => 'controllers/BlogController.php@getCategories',
     
     // Reviews (public)
     'GET companies/(\d+)/reviews' => 'controllers/ReviewController.php@getByCompany',
