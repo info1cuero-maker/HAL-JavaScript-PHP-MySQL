@@ -7,8 +7,14 @@ class Response {
      * Send JSON response
      */
     public static function json($data, $status = 200) {
+        // Clear any buffered output (warnings, errors, etc.)
+        if (ob_get_level() > 0) {
+            ob_clean();
+        }
+        
         http_response_code($status);
-        echo json_encode($data, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        header('Content-Type: application/json; charset=UTF-8');
+        echo json_encode($data, JSON_UNESCAPED_UNICODE);
         exit;
     }
     
@@ -35,7 +41,8 @@ class Response {
      */
     public static function getJsonBody() {
         $json = file_get_contents('php://input');
-        return json_decode($json, true) ?? [];
+        $data = json_decode($json, true);
+        return is_array($data) ? $data : [];
     }
 }
 ?>
