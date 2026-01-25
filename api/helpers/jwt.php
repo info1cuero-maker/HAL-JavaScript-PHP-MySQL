@@ -27,6 +27,10 @@ class JWT {
      * Decode JWT to payload
      */
     public static function decode($token) {
+        if (empty($token)) {
+            return null;
+        }
+        
         $parts = explode('.', $token);
         if (count($parts) !== 3) {
             return null;
@@ -45,6 +49,10 @@ class JWT {
         // Decode payload
         $payload = json_decode(self::base64UrlDecode($base64_payload), true);
         
+        if (!is_array($payload)) {
+            return null;
+        }
+        
         // Check expiration
         if (isset($payload['exp']) && $payload['exp'] < time()) {
             return null;
@@ -54,13 +62,50 @@ class JWT {
     }
     
     /**
+     * Get Authorization header - works on Apache, Nginx, etc.
+     */
+    private static function getAuthorizationHeader() {
+        $headers = null;
+        
+        // Try getallheaders() first (Apache)
+        if (function_exists('getallheaders')) {
+            $allHeaders = getallheaders();
+            // Server-side case-insensitive header lookup
+            foreach ($allHeaders as $name => $value) {
+                if (strtolower($name) === 'authorization') {
+                    return $value;
+                }
+            }
+        }
+        
+        // Try $_SERVER (Nginx, PHP-FPM)
+        if (isset($_SERVER['HTTP_AUTHORIZATION'])) {
+            return $_SERVER['HTTP_AUTHORIZATION'];
+        }
+        
+        if (isset($_SERVER['REDIRECT_HTTP_AUTHORIZATION'])) {
+            return $_SERVER['REDIRECT_HTTP_AUTHORIZATION'];
+        }
+        
+        // Apache mod_rewrite workaround
+        if (isset($_SERVER['Authorization'])) {
+            return $_SERVER['Authorization'];
+        }
+        
+        return null;
+    }
+    
+    /**
      * Get current user from Authorization header
      */
     public static function getCurrentUser($db) {
-        $headers = getallheaders();
-        $auth_header = $headers['Authorization'] ?? $headers['authorization'] ?? '';
+        $auth_header = self::getAuthorizationHeader();
         
-        if (!preg_match('/Bearer\s+(\S+)/', $auth_header, $matches)) {
+        if (empty($auth_header)) {
+            return null;
+        }
+        
+        if (!preg_match('/Bearer\s+(\S+)/i', $auth_header, $matches)) {
             return null;
         }
         
@@ -71,9 +116,15 @@ class JWT {
             return null;
         }
         
-        $stmt = $db->prepare("SELECT id, name, email, phone, role, created_at FROM users WHERE id = ?");
-        $stmt->execute([$payload['sub']]);
-        return $stmt->fetch();
+        try {
+            $stmt = $db->prepare("SELECT id, name, email, phone, role, created_at FROM users WHERE id = ? AND is_active = 1");
+            $stmt->execute([$payload['sub']]);
+            $user = $stmt->fetch();
+            return $user ?: null;
+        } catch (Exception $e) {
+            error_log("JWT getCurrentUser error: " . $e->getMessage());
+            return null;
+        }
     }
     
     /**
