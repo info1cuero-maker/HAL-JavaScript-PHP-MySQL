@@ -191,10 +191,32 @@ const api = {
                 headers
             });
             
-            const data = await response.json();
+            // Try to parse JSON
+            let data;
+            const contentType = response.headers.get('content-type');
+            const text = await response.text();
+            
+            if (contentType && contentType.includes('application/json') && text) {
+                try {
+                    data = JSON.parse(text);
+                } catch (e) {
+                    console.error('JSON parse error:', text.substring(0, 200));
+                    throw new Error('Помилка сервера: некоректний JSON');
+                }
+            } else if (text) {
+                // Non-JSON response
+                console.error('Non-JSON response:', text.substring(0, 200));
+                throw new Error('Помилка сервера: очікувався JSON');
+            } else {
+                data = {};
+            }
             
             if (!response.ok) {
-                throw new Error(data.error || 'API Error');
+                // Handle 401 Unauthorized - maybe token expired
+                if (response.status === 401) {
+                    console.warn('Unauthorized - token may be expired');
+                }
+                throw new Error(data.error || `Помилка ${response.status}`);
             }
             
             return data;
