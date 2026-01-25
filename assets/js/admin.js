@@ -3,22 +3,57 @@
  */
 
 // Check auth and role
-(function() {
-    if (!HAL.state.user) {
+(async function() {
+    // Check if user exists in localStorage
+    if (!HAL.state.user || !HAL.state.token) {
         window.location.href = '/login?redirect=/admin';
         return;
     }
-    if (!['admin', 'analyst'].includes(HAL.state.user.role)) {
-        alert('Доступ заборонено');
-        window.location.href = '/';
+    
+    // Verify token with server
+    try {
+        const user = await HAL.api.get('/auth/me');
+        // Update local state with server data
+        HAL.state.user = user;
+        localStorage.setItem('hal_user', JSON.stringify(user));
+        
+        // Check role
+        if (!['admin', 'analyst'].includes(user.role)) {
+            alert('Доступ заборонено. Потрібна роль Admin або Analyst.');
+            window.location.href = '/';
+            return;
+        }
+        
+        // Set user info in UI
+        document.getElementById('admin-name').textContent = user.name;
+        document.getElementById('admin-role').textContent = user.role === 'admin' ? 'Адміністратор' : 'Аналітик';
+        document.getElementById('admin-role').classList.add(user.role);
+        
+        // Initialize admin panel
+        initAdminPanel();
+        
+    } catch (error) {
+        console.error('Auth verification failed:', error);
+        // Token invalid - clear and redirect
+        HAL.logout();
+        window.location.href = '/login?redirect=/admin&error=session_expired';
         return;
     }
-    
-    // Set user info
-    document.getElementById('admin-name').textContent = HAL.state.user.name;
-    document.getElementById('admin-role').textContent = HAL.state.user.role;
-    document.getElementById('admin-role').classList.add(HAL.state.user.role);
 })();
+
+function initAdminPanel() {
+    // Load initial section from hash
+    window.addEventListener('hashchange', () => {
+        const section = window.location.hash.slice(1) || 'dashboard';
+        loadSection(section);
+    });
+
+    if (window.location.hash) {
+        loadSection(window.location.hash.slice(1));
+    } else {
+        loadSection('dashboard');
+    }
+}
 
 // State
 const adminState = {
@@ -47,18 +82,6 @@ document.querySelectorAll('.nav-item').forEach(item => {
         document.getElementById('sidebar').classList.remove('open');
     });
 });
-
-// Load initial section from hash
-window.addEventListener('hashchange', () => {
-    const section = window.location.hash.slice(1) || 'dashboard';
-    loadSection(section);
-});
-
-if (window.location.hash) {
-    loadSection(window.location.hash.slice(1));
-} else {
-    loadSection('dashboard');
-}
 
 // Section loader
 function loadSection(section) {
