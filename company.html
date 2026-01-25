@@ -82,9 +82,28 @@
         let currentImageIndex = 0;
         let company = null;
 
+        // Google Maps API Key (загружается из настроек сайта)
+        let googleMapsApiKey = 'AIzaSyBFw0Qbyq9zTFTd-tUY6dZWTgaQzuU17R8'; // Default demo key
+
+        // Load site settings for Google Maps key
+        async function loadSettings() {
+            try {
+                const response = await fetch('/api/settings/google_maps_api_key');
+                if (response.ok) {
+                    const data = await response.json();
+                    if (data.value) {
+                        googleMapsApiKey = data.value;
+                    }
+                }
+            } catch (error) {
+                console.log('Using default Google Maps key');
+            }
+        }
+
         // Load company
         async function loadCompany() {
             try {
+                await loadSettings(); // Load Google Maps API key first
                 company = await HAL.api.get(`/companies/${companyId}`);
                 renderCompany(company);
                 loadReviews();
