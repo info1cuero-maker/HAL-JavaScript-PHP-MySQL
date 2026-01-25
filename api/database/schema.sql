@@ -355,5 +355,6 @@ INSERT INTO site_settings (setting_key, setting_value, setting_type, description
 ('contact_address', 'м. Київ, вул. Хрещатик, 1', 'text', 'Адреса'),
 ('reviews_moderation', 'true', 'boolean', 'Модерація відгуків'),
 ('companies_per_page', '20', 'number', 'Компаній на сторінку'),
-('blog_posts_per_page', '10', 'number', 'Статей на сторінку')
+('blog_posts_per_page', '10', 'number', 'Статей на сторінку'),
+('google_maps_api_key', '', 'text', 'Google Maps API Key')
 ON DUPLICATE KEY UPDATE setting_key=setting_key;
