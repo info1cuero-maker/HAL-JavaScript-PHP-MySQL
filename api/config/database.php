@@ -3,11 +3,11 @@
  * Database connection class
  */
 class Database {
-    // Database credentials - CHANGE THESE FOR YOUR SERVER
+    // Database credentials
     private $host = 'localhost';
     private $db_name = 'hal_db';
-    private $username = 'root';
-    private $password = '';
+    private $username = 'hal_user';
+    private $password = 'hal_password_123';
     private $conn;
 
     /**
